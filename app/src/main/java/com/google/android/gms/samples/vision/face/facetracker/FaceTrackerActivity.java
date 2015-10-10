@@ -133,7 +133,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             @Override
             public void onPictureTaken(byte[] bytes) {
 
-                Toast.makeText(getApplicationContext(), "Saving...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Picture taken...", Toast.LENGTH_SHORT).show();
                 if (bytes == null) {
                     Toast.makeText(getApplicationContext(), "Null bytes", Toast.LENGTH_SHORT).show();
                     return;
@@ -152,6 +152,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                         Face face = faces.valueAt(i);
                         if (face.getIsLeftEyeOpenProbability() < eyeProb && face.getIsRightEyeOpenProbability() < eyeProb) {
                             Log.d("Calhacks", "Don't blink!");
+                            count--;
                             return;
                         }
                     }
@@ -403,7 +404,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mOverlay.add(mFaceGraphic);
             mFaceGraphic.updateFace(face);
 
-
             if (face.getIsSmilingProbability() > .9 && !smiling) {
                 smilers++;
                 smiling = true;
@@ -413,6 +413,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = false;
             }
 
+            if (count < numPics) {
+                captureSmilers = true;
+            }
             if (count >= numPics) {
                 captureSmilers = false;
             } else if (captureSmilers && smilers == faces && count < numPics) {
