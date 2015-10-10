@@ -21,13 +21,24 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.media.Image;
+import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -39,7 +50,10 @@ import com.google.android.gms.vision.face.FaceDetector;
 import com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview;
 import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
@@ -49,6 +63,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private static final String TAG = "FaceTracker";
 
     private CameraSource mCameraSource = null;
+    public int count = 0;
+    public static int TAKE_PHOTO_CODE = 0;
 
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
@@ -80,6 +96,46 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         } else {
             requestCameraPermission();
         }
+    }
+
+    public void takePicture()
+    {
+        mCameraSource.takePicture(new CameraSource.ShutterCallback() {
+            @Override
+            public void onShutter() {
+                Toast.makeText(getApplicationContext(), "SHUTTER", Toast.LENGTH_SHORT).show();
+            }
+        }, new CameraSource.PictureCallback() {
+            @Override
+            public void onPictureTaken(byte[] bytes) {
+
+                Toast.makeText(getApplicationContext(), "Saving...", Toast.LENGTH_SHORT).show();
+                if (bytes == null) {
+                    Toast.makeText(getApplicationContext(), "Null bytes", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                if (bitmap == null) {
+                    Toast.makeText(getApplicationContext(), "Null bitmap", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
+                File newdir = new File(dir);
+                if (!newdir.isDirectory()) {
+                    newdir.mkdirs();
+                }
+                File file = new File(dir + System.currentTimeMillis() + ".jpg");
+                try {
+                    FileOutputStream mFileOutputStream = new FileOutputStream(file);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutputStream);
+
+                    mFileOutputStream.flush();
+                    mFileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     /**
@@ -301,6 +357,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
             mOverlay.add(mFaceGraphic);
             mFaceGraphic.updateFace(face);
+
+
+            if (face.getIsSmilingProbability() > .85 && count < 3)
+            {
+                count++;
+                takePicture();
+            }
         }
 
         /**
