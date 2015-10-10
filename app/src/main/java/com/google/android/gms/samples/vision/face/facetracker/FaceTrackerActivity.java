@@ -54,6 +54,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 /**
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
@@ -63,7 +64,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private static final String TAG = "FaceTracker";
 
     private CameraSource mCameraSource = null;
-    public int count = 0;
     public static int TAKE_PHOTO_CODE = 0;
 
     private CameraSourcePreview mPreview;
@@ -72,6 +72,38 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
+
+    private volatile int smilers = 0;
+    private volatile int faces = 0;
+    private volatile int count = 0;
+
+//    public void addSmiler() {
+//        smilers++;
+//    }
+//    public void subSmiler() {
+//        smilers--;
+//    }
+//    public int getSmilers() {
+//        return smilers;
+//    }
+    public void addFace() {
+        faces++;
+    }
+    public void subFace() {
+        faces--;
+    }
+    public int getFaces() {
+        return faces;
+    }
+    public void addCount() {
+        count++;
+    }
+    public void resetCount() {
+        count = 0;
+    }
+    public int getCount() {
+        return count;
+    }
 
     //==============================================================================================
     // Activity Methods
@@ -341,6 +373,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private class GraphicFaceTracker extends Tracker<Face> {
         private GraphicOverlay mOverlay;
         private FaceGraphic mFaceGraphic;
+        private boolean smiling = false;
 
         GraphicFaceTracker(GraphicOverlay overlay) {
             mOverlay = overlay;
@@ -353,6 +386,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         public void onNewItem(int faceId, Face item) {
             mFaceGraphic.setId(faceId);
+            addFace();
         }
 
         /**
@@ -364,10 +398,21 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mFaceGraphic.updateFace(face);
 
 
-            if (face.getIsSmilingProbability() > .85 && count < 3)
+            if (face.getIsSmilingProbability() > .9 && !smiling) {
+                smilers++;
+                smiling = true;
+            } else if (face.getIsSmilingProbability() < .9 && smiling) {
+                smilers--;
+                smiling = false;
+            }
+
+            if (smilers == faces)
             {
-                count++;
-                takePicture();
+                //Toast.makeText(getApplicationContext(), "SMILERS == FACES", Toast.LENGTH_SHORT).show();
+                //Log.d("Calhacks", "SMILERS == FACES");
+                Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces);
+                addCount();
+                //takePicture();
             }
         }
 
@@ -388,6 +433,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         public void onDone() {
             mOverlay.remove(mFaceGraphic);
+            subFace();
         }
     }
 }
