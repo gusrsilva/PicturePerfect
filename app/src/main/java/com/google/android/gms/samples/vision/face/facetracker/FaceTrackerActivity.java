@@ -138,6 +138,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         });
     }
 
+    public boolean checkTime()
+    {
+        return false;
+    }
+
     /**
      * Handles the requesting of the camera permission.  This includes
      * showing a "Snackbar" message of why the permission is needed then
