@@ -148,7 +148,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     return;
                 }
 
-                // If someone is blinking with both eyes, take another picture. Doesn't retake yet.
+                // If someone is blinking with both eyes, take another picture.
                 if (blinkProof) {
                     Frame frame = new Frame.Builder().setBitmap(bitmap).build();
                     SparseArray<Face> faces = blinkDetector.detect(frame);
@@ -160,7 +160,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                         Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
                         if (leftEyeProb < eyeProb && rightEyeProb < eyeProb) {
                             retake = true;
+                            //count--;
+                            global_time = System.currentTimeMillis();
                             Log.d("Calhacks", "Don't blink!");
+                            Toast.makeText(getApplicationContext(), "Don't blink!", Toast.LENGTH_SHORT).show();
                             return;
                         }
                     }
@@ -426,10 +429,18 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
             if (count >= numPics) {
                 captureSmilers = false;
-            } else if (faces > minFaces && captureSmilers && smilers == faces && count < numPics) {
+            } else if (checkConditions()) {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
             }
+        }
+
+        public boolean checkConditions() {
+            if (retake && System.currentTimeMillis() > global_time + TIME_BETWEEN_THRESHOLD &&
+                    smilers == faces && faces > minFaces) {
+                return true;
+            }
+            return faces > minFaces && captureSmilers && smilers == faces && count < numPics;
         }
 
         /**
