@@ -76,6 +76,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int smilers = 0;
     private boolean captureSmilers = false;
     private boolean blinkProof = true;
+    private boolean retake = false;
     private volatile int faces = 0;
     private volatile int count = 0;
     private long global_time = System.currentTimeMillis();
@@ -107,7 +108,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         blinkDetector = new FaceDetector.Builder(getApplicationContext())
                 .setTrackingEnabled(false)
-                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                .setMode(FaceDetector.ACCURATE_MODE)
                 .build();
 
         // Check for the camera permission before accessing the camera.  If the
@@ -144,7 +146,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     return;
                 }
 
-                // If someone is blinking with both eyes, take another picture
+                // If someone is blinking with both eyes, take another picture. Doesn't retake yet.
                 if (blinkProof) {
                     Frame frame = new Frame.Builder().setBitmap(bitmap).build();
                     SparseArray<Face> faces = blinkDetector.detect(frame);
@@ -154,6 +156,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                         float rightEyeProb = face.getIsRightEyeOpenProbability();
                         float smileProb = face.getIsSmilingProbability();
                         Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
+                        if (leftEyeProb < eyeProb && rightEyeProb < eyeProb) {
+                            retake = true;
+                            Log.d("Calhacks", "Don't blink!");
+                            return;
+                        }
                     }
                 }
 
@@ -169,6 +176,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
                     mFileOutputStream.flush();
                     mFileOutputStream.close();
+                    Log.d("Calhacks", "Image saved");
+                    retake = false;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -218,6 +227,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         Context context = getApplicationContext();
         FaceDetector detector = new FaceDetector.Builder(context)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                .setMode(FaceDetector.FAST_MODE)
                 .build();
 
         detector.setProcessor(
