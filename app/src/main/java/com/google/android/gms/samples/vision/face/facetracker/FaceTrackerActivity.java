@@ -150,11 +150,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     SparseArray<Face> faces = blinkDetector.detect(frame);
                     for (int i = 0; i < faces.size(); ++i) {
                         Face face = faces.valueAt(i);
-                        if (face.getIsLeftEyeOpenProbability() < eyeProb && face.getIsRightEyeOpenProbability() < eyeProb) {
-                            Log.d("Calhacks", "Don't blink!");
-                            count--;
-                            return;
-                        }
+                        float leftEyeProb = face.getIsLeftEyeOpenProbability();
+                        float rightEyeProb = face.getIsRightEyeOpenProbability();
+                        float smileProb = face.getIsSmilingProbability();
+                        Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
                     }
                 }
 
@@ -413,15 +412,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = false;
             }
 
-            if (count < numPics) {
-                captureSmilers = true;
-            }
             if (count >= numPics) {
                 captureSmilers = false;
             } else if (captureSmilers && smilers == faces && count < numPics) {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
-                Log.d("CalHacks", "PICTURE TAKEN");
             }
         }
 
