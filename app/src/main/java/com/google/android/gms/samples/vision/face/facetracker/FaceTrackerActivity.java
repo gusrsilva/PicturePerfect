@@ -21,23 +21,18 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.media.Image;
-import android.media.ImageReader;
-import android.net.Uri;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -53,8 +48,6 @@ import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicO
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 /**
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
@@ -69,6 +62,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
 
+
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
@@ -76,6 +70,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int smilers = 0;
     private volatile int faces = 0;
     private volatile int count = 0;
+    private long global_time = System.currentTimeMillis();
+    private long TIME_BETWEEN_THRESHOLD = 2000;
 
     //==============================================================================================
     // Activity Methods
@@ -96,7 +92,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         // permission is not granted yet, request permission.
         int rc = ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
         if (rc == PackageManager.PERMISSION_GRANTED) {
-            createCameraSource();
+            createCameraSource(CameraSource.CAMERA_FACING_FRONT);
         } else {
             requestCameraPermission();
         }
@@ -104,6 +100,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     public void takePicture()
     {
+
         mCameraSource.takePicture(new CameraSource.ShutterCallback() {
             @Override
             public void onShutter() {
@@ -140,11 +137,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    public boolean checkTime()
-    {
-        return false;
     }
 
     /**
@@ -184,7 +176,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
      * to other detection examples to enable the barcode detector to detect small barcodes
      * at long distances.
      */
-    private void createCameraSource() {
+    private void createCameraSource(int facing) {
 
         Context context = getApplicationContext();
         FaceDetector detector = new FaceDetector.Builder(context)
@@ -207,10 +199,14 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             Log.w(TAG, "Face detector dependencies are not yet available.");
         }
 
+        Display display = getWindowManager().getDefaultDisplay();
+        int width = display.getWidth();  // deprecated
+        int height = display.getHeight();
+
         mCameraSource = new CameraSource.Builder(context, detector)
-                .setRequestedPreviewSize(640, 480)
-                .setFacing(CameraSource.CAMERA_FACING_FRONT)
-                .setRequestedFps(30.0f)
+                .setRequestedPreviewSize(width, height)
+                .setFacing(facing)
+                .setRequestedFps(32.0f)
                 .build();
     }
 
@@ -272,7 +268,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d(TAG, "Camera permission granted - initialize the camera source");
             // we have permission, so create the camerasource
-            createCameraSource();
+            createCameraSource(CameraSource.CAMERA_FACING_FRONT);
             return;
         }
 
@@ -359,6 +355,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         public void onNewItem(int faceId, Face item) {
             mFaceGraphic.setId(faceId);
             faces++;
+            count = 0;
         }
 
         /**
@@ -375,16 +372,17 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = true;
             } else if (face.getIsSmilingProbability() < .9 && smiling) {
                 smilers--;
+                count = 0;
                 smiling = false;
             }
 
-            if (smilers == faces)
+            if (smilers == faces && count < 1)
             {
                 //Toast.makeText(getApplicationContext(), "SMILERS == FACES", Toast.LENGTH_SHORT).show();
                 //Log.d("Calhacks", "SMILERS == FACES");
-                Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces);
-                count++;
-                //takePicture();
+                Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
+                takePicture();
+                Log.d("CalHacks", "PICTURE TAKEN");
             }
         }
 
@@ -406,6 +404,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         public void onDone() {
             mOverlay.remove(mFaceGraphic);
             faces--;
+            count = 0;
         }
     }
 }
