@@ -24,13 +24,13 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
@@ -39,6 +39,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.vision.CameraSource;
+import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.face.Face;
@@ -62,16 +63,19 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
-    private Button mButton;
-
+    private Button smileButton;
+    public FaceDetector blinkDetector;
 
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
     private static int numPics = 1;
+    private static float eyeProb = (float) 0.6;
+
     private volatile int smilers = 0;
-    private boolean captureSmilers = true;
+    private boolean captureSmilers = false;
+    private boolean blinkProof = true;
     private volatile int faces = 0;
     private volatile int count = 0;
     private long global_time = System.currentTimeMillis();
@@ -91,6 +95,20 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+        smileButton = (Button) findViewById(R.id.smileButton);
+        if (smileButton != null) {
+            smileButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    captureSmilers = true;
+                }
+            });
+        }
+
+        blinkDetector = new FaceDetector.Builder(getApplicationContext())
+                .setTrackingEnabled(false)
+                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
+                .build();
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -99,16 +117,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             createCameraSource(CameraSource.CAMERA_FACING_FRONT);
         } else {
             requestCameraPermission();
-        }
-
-        mButton = (Button) findViewById(R.id.smileButton);
-        if (mButton != null) {
-            mButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    captureSmilers = true;
-                }
-            });
         }
 
     }
@@ -135,6 +143,20 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Null bitmap", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                // If someone is blinking with both eyes, take another picture
+                if (blinkProof) {
+                    Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+                    SparseArray<Face> faces = blinkDetector.detect(frame);
+                    for (int i = 0; i < faces.size(); ++i) {
+                        Face face = faces.valueAt(i);
+                        if (face.getIsLeftEyeOpenProbability() < eyeProb && face.getIsRightEyeOpenProbability() < eyeProb) {
+                            Log.d("Calhacks", "Don't blink!");
+                            return;
+                        }
+                    }
+                }
+
                 final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
                 File newdir = new File(dir);
                 if (!newdir.isDirectory()) {

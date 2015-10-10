@@ -26,11 +26,12 @@
 
         <Button
             style="?android:attr/buttonStyleSmall"
-            android:layout_width="match_parent"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             android:text="Smile"
             android:id="@+id/smileButton"
             android:layout_gravity="left|bottom" />
+
     </FrameLayout>
 
 </LinearLayout>
