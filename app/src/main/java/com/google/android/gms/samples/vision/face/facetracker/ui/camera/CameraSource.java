@@ -965,45 +965,45 @@ public class CameraSource {
      * Calculates the correct rotation for the given camera id and sets the rotation in the
      * parameters.  It also sets the camera's display orientation and rotation.
      *
-     * @param var2 the camera parameters for which to set the rotation
-     * @param var3   the camera id to set rotation based on
+     * @param parameters the camera parameters for which to set the rotation
+     * @param cameraId   the camera id to set rotation based on
      */
-    private void setRotation(Camera var1, Camera.Parameters var2, int var3) {
-        WindowManager var4 = (WindowManager)this.mContext.getSystemService(Context.WINDOW_SERVICE);
-        short var5 = 0;
-        int var6 = var4.getDefaultDisplay().getRotation();
-        switch(var6) {
+    private void setRotation(Camera camera, Camera.Parameters parameters, int cameraId) {
+        WindowManager window = (WindowManager)this.mContext.getSystemService(Context.WINDOW_SERVICE);
+        short degree = 0;
+        int rotation = window.getDefaultDisplay().getRotation();
+        switch(rotation) {
             case 0:
-                var5 = 0;
+                degree = 0;
                 break;
             case 1:
-                var5 = 90;
+                degree = 90;
                 break;
             case 2:
-                var5 = 180;
+                degree = 180;
                 break;
             case 3:
-                var5 = 270;
+                degree = 270;
                 break;
             default:
-                Log.e("CameraSource", "Bad rotation value: " + var6);
+                Log.e("CameraSource", "Bad rotation value: " + rotation);
         }
 
-        CameraInfo var7 = new CameraInfo();
-        Camera.getCameraInfo(var3, var7);
-        int var8;
-        int var9;
-        if(var7.facing == 1) {
-            var8 = (var7.orientation + var5) % 360;
-            var9 = (360 - var8) % 360;
+        CameraInfo info = new CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int angle;
+        int angle2;
+        if(info.facing == 1) {
+            angle = (info.orientation + degree) % 360;
+            angle2 = (360 - angle) % 360;
         } else {
-            var8 = (var7.orientation - var5 + 360) % 360;
-            var9 = var8;
+            angle = (info.orientation - degree + 360) % 360;
+            angle2 = angle;
         }
 
-        this.mRotation = var8 / 90;
-        var1.setDisplayOrientation(var9);
-        var2.setRotation(var8);
+        this.mRotation = angle / 90;
+        camera.setDisplayOrientation(angle2);
+        parameters.setRotation(angle);
     }
 
     /**
