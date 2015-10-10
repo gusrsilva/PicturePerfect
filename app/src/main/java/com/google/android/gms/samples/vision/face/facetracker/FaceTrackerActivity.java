@@ -77,34 +77,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int faces = 0;
     private volatile int count = 0;
 
-//    public void addSmiler() {
-//        smilers++;
-//    }
-//    public void subSmiler() {
-//        smilers--;
-//    }
-//    public int getSmilers() {
-//        return smilers;
-//    }
-    public void addFace() {
-        faces++;
-    }
-    public void subFace() {
-        faces--;
-    }
-    public int getFaces() {
-        return faces;
-    }
-    public void addCount() {
-        count++;
-    }
-    public void resetCount() {
-        count = 0;
-    }
-    public int getCount() {
-        return count;
-    }
-
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -386,7 +358,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         public void onNewItem(int faceId, Face item) {
             mFaceGraphic.setId(faceId);
-            addFace();
+            faces++;
         }
 
         /**
@@ -411,7 +383,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 //Toast.makeText(getApplicationContext(), "SMILERS == FACES", Toast.LENGTH_SHORT).show();
                 //Log.d("Calhacks", "SMILERS == FACES");
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces);
-                addCount();
+                count++;
                 //takePicture();
             }
         }
@@ -433,7 +405,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         public void onDone() {
             mOverlay.remove(mFaceGraphic);
-            subFace();
+            faces--;
         }
     }
 }
