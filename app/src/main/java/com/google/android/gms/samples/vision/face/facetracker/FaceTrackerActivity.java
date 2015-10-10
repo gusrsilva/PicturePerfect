@@ -166,6 +166,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 }
 
                 final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
+                Log.d("CalHacks", "dir: " + dir);
                 File newdir = new File(dir);
                 if (!newdir.isDirectory()) {
                     newdir.mkdirs();
@@ -423,9 +424,12 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = false;
             }
 
-            if (count >= numPics) {
+            if (count >= numPics)
+            {
                 captureSmilers = false;
-            } else if (captureSmilers && smilers == faces && count < numPics) {
+            }
+            else if (captureSmilers && smilers == faces && count < numPics)
+            {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
             }

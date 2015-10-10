@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
-        android:layout_weight="5">
+        android:layout_weight="1">
 
         <com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview
           android:id="@+id/preview"
@@ -28,15 +28,21 @@
 
     </FrameLayout>
 
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:text="Smile"
-        android:id="@+id/smileButton"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_margin="20dp"
-        android:background="@drawable/circle"
-        android:textColor="#444444" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:text="Smile"
+            android:id="@+id/smileButton"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_margin="20dp"
+            android:background="@drawable/snap_button"
+            android:textColor="#444444"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
 
 </LinearLayout>
