@@ -79,6 +79,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private boolean blinkProof = true;
     private boolean retake = false;
     private volatile int faces = 0;
+    private static int minFaces = 0;
     private volatile int count = 0;
     private long global_time = System.currentTimeMillis();
     private long TIME_BETWEEN_THRESHOLD = 2000;
@@ -166,7 +167,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 }
 
                 final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
-                Log.d("CalHacks", "dir: " + dir);
                 File newdir = new File(dir);
                 if (!newdir.isDirectory()) {
                     newdir.mkdirs();
@@ -424,12 +424,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = false;
             }
 
-            if (count >= numPics)
-            {
+            if (count >= numPics) {
                 captureSmilers = false;
-            }
-            else if (captureSmilers && smilers == faces && count < numPics)
-            {
+            } else if (faces > minFaces && captureSmilers && smilers == faces && count < numPics) {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
             }
