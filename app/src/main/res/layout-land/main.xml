@@ -8,16 +8,30 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-  <com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview
-      android:id="@+id/preview"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent">
-
-    <com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay
-        android:id="@+id/faceOverlay"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-  </com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview>
+        <com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+          <com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay
+              android:id="@+id/faceOverlay"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent" />
+
+        </com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview>
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="156dp"
+            android:layout_height="72dp"
+            android:text="Smile"
+            android:id="@+id/smileButton"
+            android:layout_gravity="right|bottom" />
+
+    </FrameLayout>
 
 </LinearLayout>

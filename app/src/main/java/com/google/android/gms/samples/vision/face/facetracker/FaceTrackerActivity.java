@@ -33,6 +33,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -61,13 +62,16 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
+    private Button mButton;
 
 
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
+    private static int numPics = 1;
     private volatile int smilers = 0;
+    private boolean captureSmilers = true;
     private volatile int faces = 0;
     private volatile int count = 0;
     private long global_time = System.currentTimeMillis();
@@ -96,6 +100,17 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         } else {
             requestCameraPermission();
         }
+
+        mButton = (Button) findViewById(R.id.smileButton);
+        if (mButton != null) {
+            mButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    captureSmilers = true;
+                }
+            });
+        }
+
     }
 
     public void takePicture()
@@ -376,10 +391,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = false;
             }
 
-            if (smilers == faces && count < 1)
-            {
-                //Toast.makeText(getApplicationContext(), "SMILERS == FACES", Toast.LENGTH_SHORT).show();
-                //Log.d("Calhacks", "SMILERS == FACES");
+            if (count >= numPics) {
+                captureSmilers = false;
+            } else if (captureSmilers && smilers == faces && count < numPics) {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
                 Log.d("CalHacks", "PICTURE TAKEN");
