@@ -57,7 +57,8 @@
         android:background="@color/background_color"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
-        android:id="@+id/buttons_holder">
+        android:id="@+id/buttons_holder"
+        android:foregroundTint="#000000">
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -69,7 +70,11 @@
             android:layout_margin="20dp"
             android:background="@drawable/snap_button"
             android:textColor="#444444"
-            android:layout_centerInParent="true" />
+            android:layout_centerInParent="true"
+            android:src="@drawable/smile_icon"
+            android:typeface="normal"
+            android:textStyle="bold"
+            android:foregroundTint="#000000" />
 
         <ImageView
             android:layout_width="@dimen/thumbnail_size"
