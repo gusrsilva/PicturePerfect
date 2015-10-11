@@ -230,7 +230,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         blinkProof = true;
         retake = false;
         faces = 0;
-        minFaces = 1;
+        minSmiles = 1;
         count = 0;
     }
 
