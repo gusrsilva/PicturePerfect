@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.gms.samples.vision.face.facetracker;
+package com.pictureperfect;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Build;
 
-import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay;
+import com.pictureperfect.ui.camera.GraphicOverlay;
 import com.google.android.gms.vision.face.Face;
-
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated

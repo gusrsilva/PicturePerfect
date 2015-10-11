@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.gms.samples.vision.face.facetracker;
+package com.pictureperfect;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -30,7 +30,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -51,14 +50,14 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 //import com.google.android.gms.vision.CameraSource;
-import com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSource;
+import com.pictureperfect.ui.camera.CameraSource;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.MultiProcessor;
 import com.google.android.gms.vision.Tracker;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
-import com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview;
-import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay;
+import com.pictureperfect.ui.camera.CameraSourcePreview;
+import com.pictureperfect.ui.camera.GraphicOverlay;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -270,7 +269,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 @Override
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
-                    Toast.makeText(getApplicationContext(), "Pictura Taken", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Picture Taken", Toast.LENGTH_SHORT).show();
                 }
             });
         }

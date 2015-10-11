@@ -1,4 +1,4 @@
-package com.google.android.gms.samples.vision.face.facetracker.ui.camera;
+package com.pictureperfect.ui.camera;
 
 /*
  * Copyright (C) The Android Open Source Project
@@ -29,11 +29,9 @@ package com.google.android.gms.samples.vision.face.facetracker.ui.camera;
         import android.support.annotation.RequiresPermission;
         import android.support.annotation.StringDef;
         import android.util.Log;
-        import android.view.Surface;
         import android.view.SurfaceHolder;
         import android.view.SurfaceView;
         import android.view.WindowManager;
-        import android.widget.Toast;
 
         import com.google.android.gms.common.images.Size;
         import com.google.android.gms.vision.Detector;

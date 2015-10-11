@@ -12,7 +12,7 @@
         android:summary="Quickly retake a picture if someone happens to blink."
         android:defaultValue="true" />
 
-    <com.google.android.gms.samples.vision.face.facetracker.SeekBarPreference
+    <com.pictureperfect.SeekBarPreference
         android:key="minFaces"
         android:title="Number of Faces"
         android:summary="Wait for the the phone to detect at least this many faces before taking a picture."
@@ -22,7 +22,7 @@
         android:max="7"
         />
 
-    <com.google.android.gms.samples.vision.face.facetracker.SeekBarPreference
+    <com.pictureperfect.SeekBarPreference
         android:key="smileThreshold"
         android:title="Smile Enthusiasm"
         android:summary="How big are your smiles? Set the minimum threshold for taking a picture."
@@ -32,7 +32,7 @@
         android:max="100"
         />
 
-    <com.google.android.gms.samples.vision.face.facetracker.SeekBarPreference
+    <com.pictureperfect.SeekBarPreference
         android:key="blinkThreshold"
         android:title="Blink Threshold"
         android:summary="Threshold for blink proofing."

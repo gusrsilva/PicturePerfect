@@ -3,13 +3,12 @@
  * 
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-package com.google.android.gms.samples.vision.face.facetracker;
+package com.pictureperfect;
 
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.preference.DialogPreference;
 import android.widget.SeekBar;
 import android.widget.TextView;

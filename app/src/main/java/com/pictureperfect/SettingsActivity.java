@@ -1,11 +1,9 @@
-package com.google.android.gms.samples.vision.face.facetracker;
+package com.pictureperfect;
 
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
-import android.support.v7.app.ActionBar;
-import android.widget.Toast;
 
 
 public class SettingsActivity extends PreferenceActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
