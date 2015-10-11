@@ -77,7 +77,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private Button smileButton;
     private Button addMinFace;
     private Button subMinFace;
-    public FaceDetector blinkDetector;
     private ImageView thumbnail;
     private ImageButton flipButton;
     private ImageButton settingsButton;
@@ -152,7 +151,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             });
         } else { Log.d("Calhacks", "null min button"); }
 
-        blinkDetector = new FaceDetector.Builder(getApplicationContext())
+        FaceDetector detector = new FaceDetector.Builder(getApplicationContext())
                 .setTrackingEnabled(true)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
                 .setMode(FaceDetector.FAST_MODE)
@@ -297,6 +296,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         mCameraSource.takePicture(new CameraSource.ShutterCallback() {
             @Override
             public void onShutter() {
+                mAnimationSet.start();
             }
         }, new CameraSource.PictureCallback() {
             @Override
@@ -304,7 +304,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             {
                 SavePictureTask save = new SavePictureTask();
                 save.execute(bytes);
-
             }
         });
     }
@@ -589,8 +588,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute()
         {
-            mAnimationSet.start();
-            Log.d(TAG, "Started animation");
+            //Do Nothing, A placeholder for potential code
         }
 
         @Override
@@ -613,10 +611,19 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             }
 
             // If someone is blinking with both eyes, take another picture.
-            if (blinkProof) {
+            if (blinkProof)
+            {
+                FaceDetector detector = new FaceDetector.Builder(getApplicationContext())
+                        .setTrackingEnabled(false)
+                        .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                        .setMode(FaceDetector.ACCURATE_MODE)
+                        .setLandmarkType(FaceDetector.NO_LANDMARKS)
+                        .build();
+
                 Frame frame = new Frame.Builder().setBitmap(bitmap).build();
-                SparseArray<Face> faces = blinkDetector.detect(frame);
-                for (int i = 0; i < faces.size(); ++i) {
+                SparseArray<Face> faces = detector.detect(frame);
+                for (int i = 0; i < faces.size(); ++i)
+                {
                     Face face = faces.valueAt(i);
                     float leftEyeProb = face.getIsLeftEyeOpenProbability();
                     float rightEyeProb = face.getIsRightEyeOpenProbability();
@@ -627,7 +634,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                         //count--;
                         global_time = System.currentTimeMillis();
                         Log.d("Calhacks", "Don't blink!");
-                        //Toast.makeText(getApplicationContext(), "Don't blink!", Toast.LENGTH_SHORT).show();
                         objs.add("Blinked");
                         return objs;
                     }
