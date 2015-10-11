@@ -44,6 +44,7 @@ import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -77,7 +78,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private Button subMinFace;
     public FaceDetector blinkDetector;
     private ImageView thumbnail;
-    private Button flipButton;
+    private ImageButton flipButton;
     private ImageView flash;
 
     private static final int RC_HANDLE_GMS = 9001;
@@ -173,7 +174,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         smileButton = (Button) findViewById(R.id.smileButton);
         thumbnail = (ImageView)findViewById(R.id.thumbnail);
-        flipButton = (Button)findViewById(R.id.flipButton);
+        flipButton = (ImageButton)findViewById(R.id.flipButton);
         flash = (ImageView)findViewById(R.id.flash);
         flash.setVisibility(View.INVISIBLE);
 
