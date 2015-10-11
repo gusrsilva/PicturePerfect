@@ -1,6 +1,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
+        android:key="showOverlay"
+        android:title="Show Overlay"
+        android:summary="Oval faces and show their smile numbers."
+        android:defaultValue="true" />
+
+    <SwitchPreference
         android:key="blinkProof"
         android:title="Blink Proofing"
         android:summary="Quickly retake a picture if someone happens to blink."
@@ -30,12 +36,10 @@
         android:key="blinkThreshold"
         android:title="Blink Threshold"
         android:summary="Threshold for blink proofing."
-        android:dialogMessage="On a scale of newborn puppies to Sauron's Eye..."
+        android:dialogMessage="On a scale of Sauron's Eye to newborn puppies"
         android:defaultValue="50"
         android:text=""
         android:max="100"
         />
-
-
 
 </PreferenceScreen>
