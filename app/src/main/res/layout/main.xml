@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/topLayout"
     android:orientation="vertical"
@@ -8,16 +8,21 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <FrameLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_alignParentTop="true"
+        android:id="@+id/preview_holder"
+        android:layout_above="@+id/buttons_holder">
 
         <com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview
           android:id="@+id/preview"
           android:layout_width="match_parent"
-          android:layout_height="match_parent">
+          android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true">
 
         <com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay
             android:id="@+id/faceOverlay"
@@ -26,12 +31,24 @@
 
       </com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview>
 
-    </FrameLayout>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/flipButton"
+            android:layout_alignParentRight="true"
+            android:text="FLIP"
+            android:layout_alignParentTop="true" />
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/background_color">
+        android:background="@color/background_color"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="0dp"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/buttons_holder">
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -54,7 +71,8 @@
             android:layout_alignParentEnd="true"
             android:layout_margin="20dp"
             android:scaleType="centerCrop"
-            android:adjustViewBounds="true" />
+            android:adjustViewBounds="true"
+            android:src="@drawable/empty_pic" />
 
 
         <Button
@@ -84,4 +102,4 @@
 
     </RelativeLayout>
 
-</LinearLayout>
+</RelativeLayout>
