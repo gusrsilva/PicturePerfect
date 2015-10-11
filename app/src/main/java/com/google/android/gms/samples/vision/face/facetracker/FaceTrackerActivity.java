@@ -21,11 +21,15 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +38,7 @@ import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -83,6 +88,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int faces = 0;
     private static int minFaces = 1;
     private volatile int count = 0;
+    private ImageView thumbnail;
+    private SharedPreferences sharedPrefs;
+    private SharedPreferences.Editor mEditor;
+
     private long global_time = System.currentTimeMillis();
     private long TIME_BETWEEN_THRESHOLD = 2000;
 
@@ -98,17 +107,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         super.onCreate(icicle);
         setContentView(R.layout.main);
 
-        mPreview = (CameraSourcePreview) findViewById(R.id.preview);
-        mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
-        smileButton = (Button) findViewById(R.id.smileButton);
-        if (smileButton != null) {
-            smileButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    captureSmilers = true;
-                }
-            });
-        }
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String lastImage = sharedPrefs.getString("last_image", null);
+
+        initializeDrawables(lastImage);
+
         addMinFace = (Button) findViewById(R.id.addMinFaces);
         if (addMinFace != null) {
             addMinFace.setOnClickListener(new View.OnClickListener() {
@@ -152,6 +155,40 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             requestCameraPermission();
         }
 
+    }
+
+    public void initializeDrawables(String lastImagePath)
+    {
+        mPreview = (CameraSourcePreview) findViewById(R.id.preview);
+        mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
+        smileButton = (Button) findViewById(R.id.smileButton);
+        thumbnail = (ImageView)findViewById(R.id.thumbnail);
+        if(lastImagePath != null && thumbnail != null)
+            thumbnail.setImageBitmap(BitmapFactory.decodeFile(lastImagePath));
+        if (smileButton != null)
+        {
+            smileButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    captureSmilers = true;
+                }
+            });
+        }
+        if(thumbnail != null)
+        {
+            thumbnail.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (v != null && v.getTag() != null) {
+                        Intent intent = new Intent();
+                        intent.setAction(android.content.Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(new File(v.getTag().toString())), "image/jpg");
+                        startActivity(intent);
+                    } else
+                        Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     public void takePicture()
@@ -203,13 +240,27 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 if (!newdir.isDirectory()) {
                     newdir.mkdirs();
                 }
-                File file = new File(dir + System.currentTimeMillis() + ".jpg");
+                String filePath = dir + System.currentTimeMillis() + ".jpg";
+                File file = new File(filePath);
                 try {
                     FileOutputStream mFileOutputStream = new FileOutputStream(file);
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutputStream);
 
                     mFileOutputStream.flush();
                     mFileOutputStream.close();
+
+                    if (thumbnail != null)
+                    {
+                        mEditor = sharedPrefs.edit();
+                        thumbnail.setImageBitmap(bitmap);
+                        thumbnail.setTag(filePath);
+                        mEditor.putString("last_image", filePath);
+                        mEditor.apply();
+                    }
+                    else
+                    {
+                        Toast.makeText(getApplicationContext(), "Null Thumbnail", Toast.LENGTH_SHORT).show();
+                    }
                     Log.d("Calhacks", "Image saved");
                     retake = false;
                 } catch (IOException e) {
