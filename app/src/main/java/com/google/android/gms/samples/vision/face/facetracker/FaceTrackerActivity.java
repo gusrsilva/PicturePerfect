@@ -86,7 +86,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private boolean blinkProof = true;
     private boolean retake = false;
     private volatile int faces = 0;
-    private static int minFaces = 1;
+    private static int minSmiles = 1;
     private volatile int count = 0;
     private ImageView thumbnail;
     private SharedPreferences sharedPrefs;
@@ -117,9 +117,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             addMinFace.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    minFaces++;
-                    smileButton.setText(String.format("%d Smiles", minFaces));
-                    Log.d("Calhacks", "minFaces: " + minFaces);
+                    minSmiles++;
+                    smileButton.setText(String.format("%d Smiles", minSmiles));
+                    Log.d("Calhacks", "minFaces: " + minSmiles);
                 }
             });
         } else { Log.d("Calhacks", "null min button"); }
@@ -128,13 +128,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             subMinFace.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (minFaces > 1) {
-                        minFaces--;
-                        smileButton.setText(String.format("%d Smiles", minFaces));
-                        if (minFaces == 1) {
+                    if (minSmiles > 1) {
+                        minSmiles--;
+                        smileButton.setText(String.format("%d Smiles", minSmiles));
+                        if (minSmiles == 1) {
                             smileButton.setText("Smile");
                         }
-                        Log.d("Calhacks", "minFaces: " + minFaces);
+                        Log.d("Calhacks", "minFaces: " + minSmiles);
                     }
                 }
             });
@@ -516,11 +516,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         }
 
         public boolean checkConditions() {
-            if (retake && System.currentTimeMillis() > global_time + TIME_BETWEEN_THRESHOLD &&
-                    smilers == faces && faces >= minFaces) {
+            if (retake && System.currentTimeMillis() > global_time + TIME_BETWEEN_THRESHOLD && smilers >= minSmiles) {
                 return true;
             }
-            return faces >= minFaces && captureSmilers && smilers == faces && count < numPics;
+            return smilers >= minSmiles && captureSmilers && count < numPics;
         }
 
         /**
