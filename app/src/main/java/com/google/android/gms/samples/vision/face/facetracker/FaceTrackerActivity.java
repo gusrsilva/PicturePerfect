@@ -135,7 +135,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     Log.d("Calhacks", "minFaces: " + minSmiles);
                 }
             });
-        } else { Log.d("Calhacks", "null min button"); }
+        }
         subMinSmile = (Button) findViewById(R.id.subMinFaces);
         if (subMinSmile != null) {
             subMinSmile.setOnClickListener(new View.OnClickListener() {
@@ -151,14 +151,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     }
                 }
             });
-        } else { Log.d("Calhacks", "null min button"); }
-
-        FaceDetector detector = new FaceDetector.Builder(getApplicationContext())
-                .setTrackingEnabled(true)
-                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-                .setMode(FaceDetector.FAST_MODE)
-                .setLandmarkType(FaceDetector.NO_LANDMARKS)
-                .build();
+        }
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -174,9 +167,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     public static void updateSettings() {
         if (sharedPrefs != null) {
             blinkProof = sharedPrefs.getBoolean("blinkProof", true);
-            minFaces = Integer.parseInt(sharedPrefs.getString("minFaces", "1"));
+            minFaces = sharedPrefs.getInt("minFaces", 1);
             smileThreshold = (float)sharedPrefs.getInt("smileThreshold", 80) / (float) 100.;
-            Log.d("Calhacks", "Settings updated, smileThreshold: " + smileThreshold);
+            eyeProb = (float)sharedPrefs.getInt("blinkThreshold", 50) / (float) 100.;
         }
     }
 
