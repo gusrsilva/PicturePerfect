@@ -30,6 +30,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -206,7 +207,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             smileButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    captureSmilers = true;
+                    if (captureSmilers) {
+                        captureSmilers = false;
+                        smileButton.setBackgroundColor(Color.WHITE);
+                    } else {
+                        captureSmilers = true;
+                        smileButton.setBackgroundColor(getResources().getColor(R.color.gold));
+                    }
                 }
             });
         }
@@ -288,6 +295,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         numPics = 1;
         smilers = 0;
         captureSmilers = false;
+        smileButton.setBackgroundColor(Color.WHITE);
         retake = false;
         faces = 0;
         minSmiles = 1;
@@ -551,6 +559,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
             if (count >= numPics) {
                 captureSmilers = false;
+                smileButton.setBackgroundColor(Color.WHITE);
             } else if (checkConditions()) {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
