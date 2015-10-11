@@ -88,6 +88,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     private static int numPics = 1;
     private static float eyeProb = (float) 0.5;
+    private static float smileThreshold = (float) 0.8;
 
     private volatile int smilers = 0;
     private boolean captureSmilers = false;
@@ -95,6 +96,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private boolean retake = false;
     private volatile int faces = 0;
     private static int minSmiles = 1;
+    private static int minFaces = 1;
     private volatile int count = 0;
     private AnimatorSet mAnimationSet;
 
@@ -117,6 +119,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String lastImage = sharedPrefs.getString("last_image", null);
+
+        blinkProof = sharedPrefs.getBoolean("blinkProof", true);
+        minFaces = Integer.parseInt(sharedPrefs.getString("minFaces", "1"));
+        smileThreshold = (float) (sharedPrefs.getInt("smileThreshold", 80) / 100);
+
         Log.d(TAG, "lastImage: " + lastImage);
 
         initializeDrawables(lastImage);
