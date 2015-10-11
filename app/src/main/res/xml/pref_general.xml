@@ -29,7 +29,7 @@
     <com.google.android.gms.samples.vision.face.facetracker.SeekBarPreference
         android:key="blinkThreshold"
         android:title="Blink Threshold"
-        android:summary=""
+        android:summary="Threshold for blink proofing."
         android:dialogMessage="On a scale of newborn puppies to Sauron's Eye..."
         android:defaultValue="50"
         android:text=""
