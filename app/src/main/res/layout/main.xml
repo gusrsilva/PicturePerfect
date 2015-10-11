@@ -30,7 +30,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/background_color">
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -43,6 +44,18 @@
             android:background="@drawable/snap_button"
             android:textColor="#444444"
             android:layout_centerInParent="true" />
+
+        <ImageView
+            android:layout_width="@dimen/thumbnail_size"
+            android:layout_height="@dimen/thumbnail_size"
+            android:id="@+id/thumbnail"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="20dp"
+            android:scaleType="centerCrop"
+            android:adjustViewBounds="true" />
+
 
         <Button
             android:layout_width="50dp"
@@ -67,7 +80,7 @@
             android:layout_alignParentStart="true"
             android:textAlignment="gravity"
             android:gravity="center|center_vertical|center_horizontal"
-            android:background="#0" />
+            android:background="#00000000" />
 
     </RelativeLayout>
 
