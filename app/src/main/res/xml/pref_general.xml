@@ -15,6 +15,16 @@
         android:entryValues="@array/pref_example_list_values"
         />
 
+    <com.google.android.gms.samples.vision.face.facetracker.SeekBarPreference
+        android:key="smileThreshold"
+        android:title="Smile Enthusiasm"
+        android:summary="How big are your smiles? Set the minimum threshold for taking a picture."
+        android:dialogMessage="On a scale of Kanye to the Joker..."
+        android:defaultValue="80"
+        android:text=""
+        android:max="100"
+        />
+
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
     <EditTextPreference
