@@ -65,6 +65,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
     private Button smileButton;
+    private Button addMinFace;
+    private Button subMinFace;
     public FaceDetector blinkDetector;
 
     private static final int RC_HANDLE_GMS = 9001;
@@ -72,14 +74,14 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM = 2;
 
     private static int numPics = 1;
-    private static float eyeProb = (float) 0.6;
+    private static float eyeProb = (float) 0.5;
 
     private volatile int smilers = 0;
     private boolean captureSmilers = false;
     private boolean blinkProof = true;
     private boolean retake = false;
     private volatile int faces = 0;
-    private static int minFaces = 0;
+    private static int minFaces = 1;
     private volatile int count = 0;
     private long global_time = System.currentTimeMillis();
     private long TIME_BETWEEN_THRESHOLD = 2000;
@@ -107,6 +109,33 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 }
             });
         }
+        addMinFace = (Button) findViewById(R.id.addMinFaces);
+        if (addMinFace != null) {
+            addMinFace.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    minFaces++;
+                    smileButton.setText(String.format("%d Smiles", minFaces));
+                    Log.d("Calhacks", "minFaces: " + minFaces);
+                }
+            });
+        } else { Log.d("Calhacks", "null min button"); }
+        subMinFace = (Button) findViewById(R.id.subMinFaces);
+        if (subMinFace != null) {
+            subMinFace.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (minFaces > 1) {
+                        minFaces--;
+                        smileButton.setText(String.format("%d Smiles", minFaces));
+                        if (minFaces == 0) {
+                            smileButton.setText("Smile");
+                        }
+                        Log.d("Calhacks", "minFaces: " + minFaces);
+                    }
+                }
+            });
+        } else { Log.d("Calhacks", "null min button"); }
 
         blinkDetector = new FaceDetector.Builder(getApplicationContext())
                 .setTrackingEnabled(false)
@@ -437,10 +466,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         public boolean checkConditions() {
             if (retake && System.currentTimeMillis() > global_time + TIME_BETWEEN_THRESHOLD &&
-                    smilers == faces && faces > minFaces) {
+                    smilers == faces && faces >= minFaces) {
                 return true;
             }
-            return faces > minFaces && captureSmilers && smilers == faces && count < numPics;
+            return faces >= minFaces && captureSmilers && smilers == faces && count < numPics;
         }
 
         /**
