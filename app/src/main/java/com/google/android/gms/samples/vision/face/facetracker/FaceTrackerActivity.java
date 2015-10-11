@@ -26,6 +26,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -62,17 +63,15 @@ import java.io.IOException;
  * overlay graphics to indicate the position, size, and ID of each face.
  */
 public final class FaceTrackerActivity extends AppCompatActivity {
-    private static final String TAG = "FaceTracker";
-
     private CameraSource mCameraSource = null;
-    public static int TAKE_PHOTO_CODE = 0;
-
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
     private Button smileButton;
     private Button addMinFace;
     private Button subMinFace;
     public FaceDetector blinkDetector;
+    private ImageView thumbnail;
+    private Button flipButton;
 
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
@@ -88,16 +87,15 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int faces = 0;
     private static int minSmiles = 1;
     private volatile int count = 0;
-    private ImageView thumbnail;
+
     private SharedPreferences sharedPrefs;
     private SharedPreferences.Editor mEditor;
 
     private long global_time = System.currentTimeMillis();
     private long TIME_BETWEEN_THRESHOLD = 2000;
-
-    //==============================================================================================
-    // Activity Methods
-    //==============================================================================================
+    private int CAMERA_FACING_BACK = CameraSource.CAMERA_FACING_BACK;
+    private int CAMERA_FACING_FRONT= CameraSource.CAMERA_FACING_FRONT;
+    private String TAG = "CalHacks";
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -109,11 +107,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String lastImage = sharedPrefs.getString("last_image", null);
+        Log.d(TAG, "lastImage: " + lastImage);
 
         initializeDrawables(lastImage);
 
         addMinFace = (Button) findViewById(R.id.addMinFaces);
-        if (addMinFace != null) {
+        if (addMinFace != null)
+        {
             addMinFace.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -163,8 +163,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         smileButton = (Button) findViewById(R.id.smileButton);
         thumbnail = (ImageView)findViewById(R.id.thumbnail);
-        if(lastImagePath != null && thumbnail != null)
+        flipButton = (Button)findViewById(R.id.flipButton);
+        if(lastImagePath != null && thumbnail != null) {
             thumbnail.setImageBitmap(BitmapFactory.decodeFile(lastImagePath));
+            thumbnail.setTag(lastImagePath);
+        }
         if (smileButton != null)
         {
             smileButton.setOnClickListener(new View.OnClickListener() {
@@ -189,10 +192,49 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 }
             });
         }
+        if(flipButton != null)
+        {
+            flipButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    flipCamera();
+                }
+            });
+        }
     }
 
-    public void takePicture()
+    public void flipCamera()
     {
+        resetVars();
+        if(mCameraSource == null)
+        {
+            Toast.makeText(getApplicationContext(), "Null CameraSource", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int facing = mCameraSource.getCameraFacing();
+        mCameraSource.release(); mCameraSource = null;
+        if (facing == CAMERA_FACING_BACK)
+            createCameraSource(CAMERA_FACING_FRONT);
+        else
+            createCameraSource(CAMERA_FACING_BACK);
+
+        startCameraSource();
+    }
+
+    public void resetVars()
+    {
+        numPics = 1;
+        smilers = 0;
+        captureSmilers = false;
+        blinkProof = true;
+        retake = false;
+        faces = 0;
+        minFaces = 1;
+        count = 0;
+    }
+
+    public void takePicture() {
 
         mCameraSource.takePicture(new CameraSource.ShutterCallback() {
             @Override
@@ -249,16 +291,13 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     mFileOutputStream.flush();
                     mFileOutputStream.close();
 
-                    if (thumbnail != null)
-                    {
+                    if (thumbnail != null) {
                         mEditor = sharedPrefs.edit();
                         thumbnail.setImageBitmap(bitmap);
                         thumbnail.setTag(filePath);
                         mEditor.putString("last_image", filePath);
                         mEditor.apply();
-                    }
-                    else
-                    {
+                    } else {
                         Toast.makeText(getApplicationContext(), "Null Thumbnail", Toast.LENGTH_SHORT).show();
                     }
                     Log.d("Calhacks", "Image saved");
