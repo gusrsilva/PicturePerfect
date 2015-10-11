@@ -183,6 +183,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         }
         if (smileButton != null)
         {
+            smileButton.setText(String.format("%d Smiles", minSmiles));
+            if (minSmiles == 1) {
+                smileButton.setText("Smile");
+            }
             smileButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -201,7 +205,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                         intent.setDataAndType(Uri.fromFile(new File(v.getTag().toString())), "image/jpg");
                         startActivity(intent);
                     } else
-                        Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "Take a picture!", Toast.LENGTH_SHORT).show();
                 }
             });
         }
