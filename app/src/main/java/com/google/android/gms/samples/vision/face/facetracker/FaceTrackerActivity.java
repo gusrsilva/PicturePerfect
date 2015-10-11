@@ -633,7 +633,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     float rightEyeProb = face.getIsRightEyeOpenProbability();
                     float smileProb = face.getIsSmilingProbability();
                     Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
-                    if (leftEyeProb < eyeProb && rightEyeProb < eyeProb && leftEyeProb >= ) {
+                    if (leftEyeProb < eyeProb && rightEyeProb < eyeProb && leftEyeProb >= 0) {
                         retake = true;
                         //count--;
                         global_time = System.currentTimeMillis();
