@@ -17,7 +17,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        Toast.makeText(getApplicationContext(), "Settings Changed!", Toast.LENGTH_SHORT).show();
+        FaceTrackerActivity.updateSettings();
     }
 
     @Override

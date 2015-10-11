@@ -30,8 +30,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Camera;
-import android.media.audiofx.BassBoost;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -75,8 +73,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
     private Button smileButton;
-    private Button addMinFace;
-    private Button subMinFace;
+    private Button addMinSmile;
+    private Button subMinSmile;
     private ImageView thumbnail;
     private ImageButton flipButton;
     private ImageButton settingsButton;
@@ -92,7 +90,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     private volatile int smilers = 0;
     private boolean captureSmilers = false;
-    private boolean blinkProof = true;
+    private static boolean blinkProof = true;
     private boolean retake = false;
     private volatile int faces = 0;
     private static int minSmiles = 1;
@@ -100,7 +98,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int count = 0;
     private AnimatorSet mAnimationSet;
 
-    private SharedPreferences sharedPrefs;
+    private static SharedPreferences sharedPrefs;
     private SharedPreferences.Editor mEditor;
 
     private long global_time = System.currentTimeMillis();
@@ -119,20 +117,17 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         String lastImage = sharedPrefs.getString("last_image", null);
-
-        blinkProof = sharedPrefs.getBoolean("blinkProof", true);
-        minFaces = Integer.parseInt(sharedPrefs.getString("minFaces", "1"));
-        smileThreshold = (float) (sharedPrefs.getInt("smileThreshold", 80) / 100);
+        updateSettings();
 
         Log.d(TAG, "lastImage: " + lastImage);
 
         initializeDrawables(lastImage);
         initializeAnimation();
 
-        addMinFace = (Button) findViewById(R.id.addMinFaces);
-        if (addMinFace != null)
+        addMinSmile = (Button) findViewById(R.id.addMinFaces);
+        if (addMinSmile != null)
         {
-            addMinFace.setOnClickListener(new View.OnClickListener() {
+            addMinSmile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     minSmiles++;
@@ -141,9 +136,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 }
             });
         } else { Log.d("Calhacks", "null min button"); }
-        subMinFace = (Button) findViewById(R.id.subMinFaces);
-        if (subMinFace != null) {
-            subMinFace.setOnClickListener(new View.OnClickListener() {
+        subMinSmile = (Button) findViewById(R.id.subMinFaces);
+        if (subMinSmile != null) {
+            subMinSmile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (minSmiles > 1) {
@@ -174,6 +169,15 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             requestCameraPermission();
         }
 
+    }
+
+    public static void updateSettings() {
+        if (sharedPrefs != null) {
+            blinkProof = sharedPrefs.getBoolean("blinkProof", true);
+            minFaces = Integer.parseInt(sharedPrefs.getString("minFaces", "1"));
+            smileThreshold = (float)sharedPrefs.getInt("smileThreshold", 80) / (float) 100.;
+            Log.d("Calhacks", "Settings updated, smileThreshold: " + smileThreshold);
+        }
     }
 
     public void initializeDrawables(String lastImagePath)
@@ -291,11 +295,11 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         numPics = 1;
         smilers = 0;
         captureSmilers = false;
-        blinkProof = true;
         retake = false;
         faces = 0;
         minSmiles = 1;
         count = 0;
+        updateSettings();
     }
 
     public void takePicture() {
@@ -543,10 +547,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mOverlay.add(mFaceGraphic);
             mFaceGraphic.updateFace(face);
 
-            if (face.getIsSmilingProbability() > .9 && !smiling) {
+            if (face.getIsSmilingProbability() > smileThreshold && !smiling) {
                 smilers++;
                 smiling = true;
-            } else if (face.getIsSmilingProbability() < .9 && smiling) {
+            } else if (face.getIsSmilingProbability() < smileThreshold && smiling) {
                 smilers--;
                 count = 0;
                 smiling = false;
@@ -564,7 +568,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             if (retake && System.currentTimeMillis() > global_time + TIME_BETWEEN_THRESHOLD && smilers >= minSmiles) {
                 return true;
             }
-            return smilers >= minSmiles && captureSmilers && count < numPics;
+            return smilers >= minSmiles && captureSmilers && count < numPics && faces >= minFaces;
         }
 
         /**
