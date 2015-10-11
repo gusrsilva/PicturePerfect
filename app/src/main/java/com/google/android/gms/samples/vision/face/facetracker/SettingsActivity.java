@@ -13,6 +13,7 @@ public class SettingsActivity extends PreferenceActivity implements SharedPrefer
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref_general);
+
     }
 
     @Override

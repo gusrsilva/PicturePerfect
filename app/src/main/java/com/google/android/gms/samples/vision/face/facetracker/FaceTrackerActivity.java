@@ -166,6 +166,12 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     }
 
+    public void setCaptureSmilers(boolean bool)
+    {
+        captureSmilers = bool;
+        smileButton.setActivated(bool);
+    }
+
     public static void updateSettings() {
         if (sharedPrefs != null) {
             blinkProof = sharedPrefs.getBoolean("blinkProof", true);
@@ -210,11 +216,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     if (captureSmilers) {
-                        captureSmilers = false;
-                        smileButton.setBackgroundColor(Color.WHITE);
+                        setCaptureSmilers(false);
                     } else {
-                        captureSmilers = true;
-                        smileButton.setBackgroundColor(getResources().getColor(R.color.gold));
+                        setCaptureSmilers(true);
                     }
                 }
             });
@@ -296,8 +300,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     {
         numPics = 1;
         smilers = 0;
-        captureSmilers = false;
-        smileButton.setBackgroundColor(Color.WHITE);
+        setCaptureSmilers(false);
         retake = false;
         faces = 0;
         minSmiles = 1;
@@ -566,10 +569,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 smiling = false;
             }
 
-            if (count >= numPics) {
-                captureSmilers = false;
-                smileButton.setBackgroundColor(Color.WHITE);
-            } else if (checkConditions()) {
+            if (checkConditions()) {
                 Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
                 takePicture();
             }
@@ -713,6 +713,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     thumbnail.setTag(filePath);
                     mEditor.putString("last_image", filePath);
                     mEditor.apply();
+                    setCaptureSmilers(false);
                 }
                 else
                 {

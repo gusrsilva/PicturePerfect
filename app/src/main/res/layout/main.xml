@@ -47,7 +47,8 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_margin="15dp" />
+            android:layout_margin="15dp"
+            android:alpha=".5" />
 
     </RelativeLayout>
 
@@ -68,8 +69,10 @@
             android:layout_gravity="center_horizontal|bottom"
             android:layout_margin="20dp"
             android:background="@drawable/snap_button"
-            android:textColor="#444444"
-            android:layout_centerInParent="true" />
+            android:textColor="@color/background_color"
+            android:layout_centerInParent="true"
+            android:fontFamily="sans-serif-thin"
+            android:textSize="25sp" />
 
         <ImageView
             android:layout_width="@dimen/thumbnail_size"
@@ -94,7 +97,8 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:textAlignment="center"
-            android:background="#00000000" />
+            android:background="#00000000"
+            android:textColor="@color/accent_color" />
 
         <Button
             android:layout_width="50dp"
@@ -107,7 +111,8 @@
             android:layout_alignParentStart="true"
             android:textAlignment="gravity"
             android:gravity="center|center_vertical|center_horizontal"
-            android:background="#00000000" />
+            android:background="#00000000"
+            android:textColor="@color/accent_color" />
 
         <ImageButton
             android:layout_width="45dp"
@@ -115,7 +120,7 @@
             android:id="@+id/settingsButton"
             android:src="@drawable/settings_white"
             android:background="#00000000"
-            android:tint="#ffffff"
+            android:tint="@color/accent_color"
             android:layout_centerVertical="true"
             android:layout_toRightOf="@+id/addMinFaces"
             android:layout_toEndOf="@+id/addMinFaces"

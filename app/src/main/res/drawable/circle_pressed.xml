@@ -4,7 +4,7 @@
     android:shape="oval">
 
     <solid
-        android:color="#ffff00"/>
+        android:color="@color/button_pressed_color"/>
 
     <size
         android:width="120dp"
