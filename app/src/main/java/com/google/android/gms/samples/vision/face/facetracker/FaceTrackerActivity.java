@@ -93,6 +93,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private boolean captureSmilers = false;
     private static boolean blinkProof = true;
     private boolean retake = false;
+    private static boolean showOverlay = true;
     private volatile int faces = 0;
     private static int minSmiles = 1;
     private static int minFaces = 1;
@@ -171,6 +172,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             minFaces = sharedPrefs.getInt("minFaces", 1);
             smileThreshold = (float)sharedPrefs.getInt("smileThreshold", 80) / (float) 100.;
             eyeProb = (float)sharedPrefs.getInt("blinkThreshold", 50) / (float) 100.;
+            showOverlay = sharedPrefs.getBoolean("showOverlay", true);
         }
     }
 
@@ -545,8 +547,15 @@ public final class FaceTrackerActivity extends AppCompatActivity {
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
-            mOverlay.add(mFaceGraphic);
-            mFaceGraphic.updateFace(face);
+            if (showOverlay) {
+                mOverlay.add(mFaceGraphic);
+                mFaceGraphic.updateFace(face);
+            }
+            else if(mOverlay != null)
+            {
+                mOverlay.clear();
+                mOverlay = null;
+            }
 
             if (face.getIsSmilingProbability() > smileThreshold && !smiling) {
                 smilers++;

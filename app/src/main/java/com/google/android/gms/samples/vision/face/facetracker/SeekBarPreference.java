@@ -47,6 +47,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         mSplashText = new TextView(mContext);
         if (mDialogMessage != null)
             mSplashText.setText(mDialogMessage);
+        mSplashText.setPadding(50,0,0,0);
         layout.addView(mSplashText);
 
         mValueText = new TextView(mContext);
@@ -55,6 +56,7 @@ public class SeekBarPreference extends DialogPreference implements SeekBar.OnSee
         params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.FILL_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
+        layout.setPadding(25,25,25,25);
         layout.addView(mValueText, params);
 
         mSeekBar = new SeekBar(mContext);

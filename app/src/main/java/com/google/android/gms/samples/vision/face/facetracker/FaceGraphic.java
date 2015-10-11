@@ -23,13 +23,16 @@ import android.os.Build;
 import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay;
 import com.google.android.gms.vision.face.Face;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 /**
  * Graphic instance for rendering face position, orientation, and landmarks within an associated
  * graphic overlay view.
  */
 class FaceGraphic extends GraphicOverlay.Graphic {
     private static final float FACE_POSITION_RADIUS = 10.0f;
-    private static final float ID_TEXT_SIZE = 40.0f;
+    private static final float ID_TEXT_SIZE = 75.0f;
     private static final float ID_Y_OFFSET = 50.0f;
     private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
@@ -51,7 +54,6 @@ class FaceGraphic extends GraphicOverlay.Graphic {
 
     private volatile Face mFace;
     private int mFaceId;
-    private float mFaceHappiness;
 
     FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
@@ -99,8 +101,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         // Draws a circle at the position of the detected face, with the face's track id below.
         float cx = translateX(face.getPosition().x + face.getWidth() / 2);
         float cy = translateY(face.getPosition().y + face.getHeight() / 2);
-        canvas.drawCircle(cx, cy, FACE_POSITION_RADIUS, mFacePositionPaint);
-        canvas.drawText("Smile: " + face.getIsSmilingProbability(), cx + ID_X_OFFSET, cy + ID_Y_OFFSET, mIdPaint);
+        //canvas.drawCircle(cx, cy, FACE_POSITION_RADIUS, mFacePositionPaint);
 
         // Draws an oval around the face.
         float xOffset = scaleX(face.getWidth() / 2.0f);
@@ -111,10 +112,12 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float bottom = cy + yOffset;
 
         float faceHeight = top - bottom;
-        float height = face.getIsSmilingProbability() * faceHeight;
+        float faceWidth = right - left;
+        float yMid = (top - bottom )/ 2f;
 
-        canvas.drawRect(left, bottom + height, left + 20, bottom, mBoxPaint);
-        canvas.drawText("Height: " + height, cx + ID_X_OFFSET, cy + ID_Y_OFFSET + 80, mIdPaint);
+        int rank = (int)(face.getIsSmilingProbability()*100);
+
+        canvas.drawText("" + (rank<0?"":rank), cx, cy, mIdPaint);
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
