@@ -1,10 +1,19 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        android:key="example_switch"
-        android:title="@string/pref_title_social_recommendations"
-        android:summary="@string/pref_description_social_recommendations"
+        android:key="blinkProof"
+        android:title="Blink Proofing"
+        android:summary="Quickly retake a picture if someone happens to blink."
         android:defaultValue="true" />
+
+    <ListPreference
+        android:key="minFaces"
+        android:title="Number of Faces"
+        android:summary="Wait for the the phone to detect at least this many faces before taking a picture."
+        android:defaultValue="1"
+        android:entries="@array/pref_example_list_titles"
+        android:entryValues="@array/pref_example_list_values"
+        />
 
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->

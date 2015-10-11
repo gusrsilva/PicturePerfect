@@ -31,6 +31,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
+import android.media.audiofx.BassBoost;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -79,6 +80,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     public FaceDetector blinkDetector;
     private ImageView thumbnail;
     private ImageButton flipButton;
+    private ImageButton settingsButton;
     private ImageView flash;
 
     private static final int RC_HANDLE_GMS = 9001;
@@ -177,7 +179,17 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         flipButton = (ImageButton)findViewById(R.id.flipButton);
         flash = (ImageView)findViewById(R.id.flash);
         flash.setVisibility(View.INVISIBLE);
+        settingsButton = (ImageButton)findViewById(R.id.settingsButton);
 
+        if (settingsButton != null) {
+            settingsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
         if(lastImagePath != null && thumbnail != null) {
             thumbnail.setImageBitmap(BitmapFactory.decodeFile(lastImagePath));
             thumbnail.setTag(lastImagePath);
