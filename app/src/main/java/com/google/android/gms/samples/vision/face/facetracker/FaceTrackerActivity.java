@@ -131,7 +131,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     if (minFaces > 1) {
                         minFaces--;
                         smileButton.setText(String.format("%d Smiles", minFaces));
-                        if (minFaces == 0) {
+                        if (minFaces == 1) {
                             smileButton.setText("Smile");
                         }
                         Log.d("Calhacks", "minFaces: " + minFaces);
