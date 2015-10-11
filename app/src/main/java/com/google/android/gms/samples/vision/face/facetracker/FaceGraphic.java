@@ -109,6 +109,14 @@ class FaceGraphic extends GraphicOverlay.Graphic {
         float top = cy - yOffset;
         float right = cx + xOffset;
         float bottom = cy + yOffset;
+
+        float faceHeight = top - bottom;
+        float height = face.getIsSmilingProbability() * faceHeight;
+
+        canvas.drawRect(left, bottom + height, left + 20, bottom, mBoxPaint);
+        canvas.drawText("Height: " + height, cx + ID_X_OFFSET, cy + ID_Y_OFFSET + 80, mIdPaint);
+
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             canvas.drawOval(left, top, right, bottom, mBoxPaint);
         } else {

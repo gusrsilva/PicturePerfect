@@ -16,6 +16,10 @@
 package com.google.android.gms.samples.vision.face.facetracker;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -28,6 +32,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -57,6 +62,7 @@ import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicO
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
@@ -72,6 +78,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     public FaceDetector blinkDetector;
     private ImageView thumbnail;
     private Button flipButton;
+    private ImageView flash;
 
     private static final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
@@ -87,6 +94,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private volatile int faces = 0;
     private static int minSmiles = 1;
     private volatile int count = 0;
+    private AnimatorSet mAnimationSet;
 
     private SharedPreferences sharedPrefs;
     private SharedPreferences.Editor mEditor;
@@ -110,6 +118,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         Log.d(TAG, "lastImage: " + lastImage);
 
         initializeDrawables(lastImage);
+        initializeAnimation();
 
         addMinFace = (Button) findViewById(R.id.addMinFaces);
         if (addMinFace != null)
@@ -141,9 +150,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         } else { Log.d("Calhacks", "null min button"); }
 
         blinkDetector = new FaceDetector.Builder(getApplicationContext())
-                .setTrackingEnabled(false)
+                .setTrackingEnabled(true)
                 .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-                .setMode(FaceDetector.ACCURATE_MODE)
+                .setMode(FaceDetector.FAST_MODE)
+                .setLandmarkType(FaceDetector.NO_LANDMARKS)
                 .build();
 
         // Check for the camera permission before accessing the camera.  If the
@@ -164,6 +174,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         smileButton = (Button) findViewById(R.id.smileButton);
         thumbnail = (ImageView)findViewById(R.id.thumbnail);
         flipButton = (Button)findViewById(R.id.flipButton);
+        flash = (ImageView)findViewById(R.id.flash);
+        flash.setVisibility(View.INVISIBLE);
+
         if(lastImagePath != null && thumbnail != null) {
             thumbnail.setImageBitmap(BitmapFactory.decodeFile(lastImagePath));
             thumbnail.setTag(lastImagePath);
@@ -203,6 +216,34 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         }
     }
 
+    public void initializeAnimation()
+    {
+        if(flash != null)
+        {
+            ObjectAnimator fadeOut = ObjectAnimator.ofFloat(flash, "alpha", 7f, 0f);
+            fadeOut.setDuration(250);
+            ObjectAnimator fadeIn = ObjectAnimator.ofFloat(flash, "alpha", 0f, 7f);
+            fadeIn.setDuration(250);
+
+            mAnimationSet = new AnimatorSet();
+
+            mAnimationSet.play(fadeOut).after(fadeIn);
+
+            mAnimationSet.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    flash.setVisibility(View.VISIBLE);
+                }
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    Toast.makeText(getApplicationContext(), "Pictura Taken", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+
     public void flipCamera()
     {
         resetVars();
@@ -239,72 +280,14 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         mCameraSource.takePicture(new CameraSource.ShutterCallback() {
             @Override
             public void onShutter() {
-                Toast.makeText(getApplicationContext(), "SHUTTER", Toast.LENGTH_SHORT).show();
             }
         }, new CameraSource.PictureCallback() {
             @Override
-            public void onPictureTaken(byte[] bytes) {
+            public void onPictureTaken(byte[] bytes)
+            {
+                SavePictureTask save = new SavePictureTask();
+                save.execute(bytes);
 
-                Toast.makeText(getApplicationContext(), "Picture taken...", Toast.LENGTH_SHORT).show();
-                if (bytes == null) {
-                    Toast.makeText(getApplicationContext(), "Null bytes", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                if (bitmap == null) {
-                    Toast.makeText(getApplicationContext(), "Null bitmap", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                // If someone is blinking with both eyes, take another picture.
-                if (blinkProof) {
-                    Frame frame = new Frame.Builder().setBitmap(bitmap).build();
-                    SparseArray<Face> faces = blinkDetector.detect(frame);
-                    for (int i = 0; i < faces.size(); ++i) {
-                        Face face = faces.valueAt(i);
-                        float leftEyeProb = face.getIsLeftEyeOpenProbability();
-                        float rightEyeProb = face.getIsRightEyeOpenProbability();
-                        float smileProb = face.getIsSmilingProbability();
-                        Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
-                        if (leftEyeProb < eyeProb && rightEyeProb < eyeProb) {
-                            retake = true;
-                            //count--;
-                            global_time = System.currentTimeMillis();
-                            Log.d("Calhacks", "Don't blink!");
-                            Toast.makeText(getApplicationContext(), "Don't blink!", Toast.LENGTH_SHORT).show();
-                            return;
-                        }
-                    }
-                }
-
-                final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
-                File newdir = new File(dir);
-                if (!newdir.isDirectory()) {
-                    newdir.mkdirs();
-                }
-                String filePath = dir + System.currentTimeMillis() + ".jpg";
-                File file = new File(filePath);
-                try {
-                    FileOutputStream mFileOutputStream = new FileOutputStream(file);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutputStream);
-
-                    mFileOutputStream.flush();
-                    mFileOutputStream.close();
-
-                    if (thumbnail != null) {
-                        mEditor = sharedPrefs.edit();
-                        thumbnail.setImageBitmap(bitmap);
-                        thumbnail.setTag(filePath);
-                        mEditor.putString("last_image", filePath);
-                        mEditor.apply();
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Null Thumbnail", Toast.LENGTH_SHORT).show();
-                    }
-                    Log.d("Calhacks", "Image saved");
-                    retake = false;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         });
     }
@@ -580,6 +563,118 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mOverlay.remove(mFaceGraphic);
             faces--;
             count = 0;
+        }
+    }
+
+    public class SavePictureTask extends AsyncTask<byte[], Integer, ArrayList<Object>>
+    {
+
+        @Override
+        protected void onPreExecute()
+        {
+            mAnimationSet.start();
+            Log.d(TAG, "Started animation");
+        }
+
+        @Override
+        protected ArrayList<Object> doInBackground(byte[]... params)
+        {
+            byte[] bytes = params[0];
+            ArrayList<Object> objs = new ArrayList<>();
+
+            //Toast.makeText(getApplicationContext(), "Picture taken...", Toast.LENGTH_SHORT).show();
+            if (bytes == null) {
+                //Toast.makeText(getApplicationContext(), "Null bytes", Toast.LENGTH_SHORT).show();
+                objs.add("Failed");
+                return objs;
+            }
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (bitmap == null) {
+                //Toast.makeText(getApplicationContext(), "Null bitmap", Toast.LENGTH_SHORT).show();
+                objs.add("Failed");
+                return objs;
+            }
+
+            // If someone is blinking with both eyes, take another picture.
+            if (blinkProof) {
+                Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+                SparseArray<Face> faces = blinkDetector.detect(frame);
+                for (int i = 0; i < faces.size(); ++i) {
+                    Face face = faces.valueAt(i);
+                    float leftEyeProb = face.getIsLeftEyeOpenProbability();
+                    float rightEyeProb = face.getIsRightEyeOpenProbability();
+                    float smileProb = face.getIsSmilingProbability();
+                    Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
+                    if (leftEyeProb < eyeProb && rightEyeProb < eyeProb) {
+                        retake = true;
+                        //count--;
+                        global_time = System.currentTimeMillis();
+                        Log.d("Calhacks", "Don't blink!");
+                        //Toast.makeText(getApplicationContext(), "Don't blink!", Toast.LENGTH_SHORT).show();
+                        objs.add("Blinked");
+                        return objs;
+                    }
+                }
+            }
+
+            final String dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
+            File newdir = new File(dir);
+            if (!newdir.isDirectory()) {
+                newdir.mkdirs();
+            }
+            String filePath = dir + System.currentTimeMillis() + ".jpg";
+            File file = new File(filePath);
+            try
+            {
+                FileOutputStream mFileOutputStream = new FileOutputStream(file);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutputStream);
+
+                mFileOutputStream.flush();
+                mFileOutputStream.close();
+
+                objs.add(filePath);
+                objs.add(bitmap);
+
+                retake = false;
+                return objs;
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+                return(new ArrayList<Object>());
+            }
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<Object> results)
+        {
+            if(results == null || results.size() == 0)
+            {
+                Log.d(TAG, "Async Failed");
+                return;
+            }
+            else if(results.size() == 1)
+            {
+                String s = (String)results.get(0);
+                Log.d(TAG, "Async Result: " + s);
+            }
+            else
+            {
+                String filePath = (String) results.get(0);
+                Bitmap bitmap = (Bitmap) results.get(1);
+                if (thumbnail != null) {
+                    mEditor = sharedPrefs.edit();
+                    thumbnail.setImageBitmap(bitmap);
+                    thumbnail.setTag(filePath);
+                    mEditor.putString("last_image", filePath);
+                    mEditor.apply();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "Null Thumbnail", Toast.LENGTH_SHORT).show();
+                }
+                Log.d("Calhacks", "Image saved");
+            }
         }
     }
 }
