@@ -5,3 +5,13 @@
 /build
 /captures
 *.iml
+
+*.iml
+
+app/app.iml
+
+.idea/modules.xml
+
+.idea/misc.xml
+
+.idea/gradle.xml
