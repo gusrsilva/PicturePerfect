@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="oval">
+
+            <gradient
+                android:endColor="#00000000"
+                android:gradientRadius="50dp"
+                android:startColor="#00000000"
+                android:type="radial" />
+            <size
+                android:width="@dimen/camera_button_shadow_size"
+                android:height="@dimen/camera_button_shadow_size" />
+        </shape>
+    </item>
+    <item android:bottom="40dp" android:top="20dp" android:left="20dp" android:right="20dp">
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="oval">
+
+            <gradient
+                android:endColor="@color/camera_button_end"
+                android:startColor="@color/camera_button_start" />
+            <size
+                android:width="@dimen/camera_button_pressed_size"
+                android:height="@dimen/camera_button_pressed_size" />
+        </shape>
+    </item>
+</layer-list>

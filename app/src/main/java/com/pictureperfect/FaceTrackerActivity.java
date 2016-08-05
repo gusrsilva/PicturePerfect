@@ -72,7 +72,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private CameraSource mCameraSource = null;
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
-    private Button smileButton;
+    private Button mCameraButton;
     private Button addMinSmile;
     private Button subMinSmile;
     private ImageView thumbnail;
@@ -132,7 +132,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     minSmiles++;
-                    smileButton.setText(String.format("%d Smiles", minSmiles));
                     Log.d("Calhacks", "minFaces: " + minSmiles);
                 }
             });
@@ -144,10 +143,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     if (minSmiles > 1) {
                         minSmiles--;
-                        smileButton.setText(String.format("%d Smiles", minSmiles));
-                        if (minSmiles == 1) {
-                            smileButton.setText("Smile");
-                        }
                         Log.d("Calhacks", "minFaces: " + minSmiles);
                     }
                 }
@@ -168,7 +163,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     public void setCaptureSmilers(boolean bool)
     {
         captureSmilers = bool;
-        smileButton.setActivated(bool);
+        mCameraButton.setActivated(bool);
     }
 
     public static void updateSettings() {
@@ -185,7 +180,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
-        smileButton = (Button) findViewById(R.id.smileButton);
+        mCameraButton = (Button) findViewById(R.id.camera_button);
         thumbnail = (ImageView)findViewById(R.id.thumbnail);
         flipButton = (ImageButton)findViewById(R.id.flipButton);
         flash = (ImageView)findViewById(R.id.flash);
@@ -205,13 +200,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             thumbnail.setImageBitmap(BitmapFactory.decodeFile(lastImagePath));
             thumbnail.setTag(lastImagePath);
         }
-        if (smileButton != null)
+        if (mCameraButton != null)
         {
-            smileButton.setText(String.format("%d Smiles", minSmiles));
-            if (minSmiles == 1) {
-                smileButton.setText("Smile");
-            }
-            smileButton.setOnClickListener(new View.OnClickListener() {
+            mCameraButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (captureSmilers) {
