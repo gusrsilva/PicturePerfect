@@ -844,8 +844,9 @@ public class CameraSource {
         int minDiff = Integer.MAX_VALUE;
         for (SizePair sizePair : validPreviewSizes) {
             Size size = sizePair.previewSize();
-            int diff = Math.abs(size.getWidth() - desiredWidth) +
-                    Math.abs(size.getHeight() - desiredHeight);
+//            int diff = Math.abs(size.getWidth() - desiredWidth) +
+//                    Math.abs(size.getHeight() - desiredHeight);
+            int diff = Math.abs(size.getHeight() - desiredHeight); // Only consider height until we come up with a better solution
             if (diff < minDiff) {
                 selectedPair = sizePair;
                 minDiff = diff;
