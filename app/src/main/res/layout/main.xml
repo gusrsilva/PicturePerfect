@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/topLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,45 +10,44 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:elevation="8dp"
-        android:background="@color/background_color">
-    <ImageButton
-        android:id="@+id/flipButton"
-        android:layout_width="@dimen/camera_option_icon_size"
-        android:layout_height="@dimen/camera_option_icon_size"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_margin="20dp"
-        android:background="#00000000"
-        android:scaleType="fitXY"
-        android:src="@drawable/camerarotate"
-        android:padding="5dp" />
+        android:background="@color/background_color"
+        android:elevation="8dp">
+
+        <ImageButton
+            android:id="@+id/flipButton"
+            android:layout_width="@dimen/camera_option_icon_size"
+            android:layout_height="@dimen/camera_option_icon_size"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="20dp"
+            android:background="#00000000"
+            android:padding="5dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/camerarotate" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/title_text"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="P I C T U R E    P E R F E C T"
-            android:gravity="center"
-            android:textAlignment="gravity"
-            android:textColor="#44000000"
             android:fontFamily="sans-serif-condensed"
-            android:textStyle="bold"
-            android:layout_toLeftOf="@+id/settingsButton"
-            android:layout_toRightOf="@+id/flipButton"/>
+            android:gravity="center"
+            android:text="P I C T U R E    P E R F E C T"
+            android:textAlignment="gravity"
+            android:textStyle="bold" />
 
-    <ImageButton
-        android:id="@+id/settingsButton"
-        android:layout_width="@dimen/camera_option_icon_size"
-        android:layout_height="@dimen/camera_option_icon_size"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_margin="20dp"
-        android:background="#00000000"
-        android:scaleType="fitCenter"
-        android:src="@drawable/settings_white"
-        android:tint="@color/accent_color"
-        android:padding="5dp" />
+        <ImageButton
+            android:id="@+id/settingsButton"
+            android:layout_width="@dimen/camera_option_icon_size"
+            android:layout_height="@dimen/camera_option_icon_size"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:layout_margin="20dp"
+            android:background="#00000000"
+            android:padding="5dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/settings_white"
+            android:tint="@color/accent_color" />
 
     </RelativeLayout>
 
@@ -83,77 +81,80 @@
 
     <LinearLayout
         android:id="@+id/buttons_holder"
-        android:elevation="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
         android:background="@color/background_color"
+        android:elevation="8dp"
+        android:orientation="horizontal"
         android:weightSum="3">
 
         <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@drawable/circle_shadow"
-            android:layout_width="wrap_content"
-            android:paddingBottom="10dp"
-            android:layout_height="match_parent">
-        <ImageView
-            android:id="@+id/thumbnail"
-            android:layout_width="@dimen/thumbnail_size"
-            android:layout_height="@dimen/thumbnail_size"
-            android:adjustViewBounds="true"
-            android:scaleType="centerCrop"
-            android:layout_centerInParent="true"
-            android:layout_margin="20dp" />
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:id="@+id/thumbnail"
+                android:layout_width="@dimen/thumbnail_size"
+                android:layout_height="@dimen/thumbnail_size"
+                android:layout_centerInParent="true"
+                android:layout_margin="20dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop" />
 
         </RelativeLayout>
 
         <RelativeLayout
-            android:layout_weight="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-        <Button
-            android:id="@+id/camera_button"
-            android:layout_centerInParent="true"
-            style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/camera_button"
-            android:textColor="@color/background_color"
-            android:textSize="25sp"
-            android:layout_margin="20dp"
-            android:gravity="center" />
+            android:layout_weight="1">
+
+            <Button
+                android:id="@+id/camera_button"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_margin="20dp"
+                android:background="@drawable/camera_button"
+                android:gravity="center"
+                android:textColor="@color/background_color"
+                android:textSize="25sp" />
         </RelativeLayout>
 
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_gravity="center_vertical"
             android:layout_margin="20dp"
-            android:gravity="center">
-        <Button
-            android:id="@+id/addMinFaces"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="#00000000"
-            android:text="+"
-            android:textAlignment="center"
-            android:textColor="@color/accent_color"
-            android:textSize="30dp" />
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/subMinFaces"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:background="#00000000"
-            android:gravity="center|center_vertical|center_horizontal"
-            android:text="-"
-            android:textAlignment="gravity"
-            android:textColor="@color/accent_color"
-            android:textSize="30dp" />
+            <Button
+                android:id="@+id/addMinFaces"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#00000000"
+                android:text="+"
+                android:textAlignment="center"
+                android:textColor="@color/accent_color"
+                android:textSize="30dp" />
+
+            <Button
+                android:id="@+id/subMinFaces"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#00000000"
+                android:gravity="center|center_vertical|center_horizontal"
+                android:text="-"
+                android:textAlignment="gravity"
+                android:textColor="@color/accent_color"
+                android:textSize="30dp" />
         </LinearLayout>
 
     </LinearLayout>

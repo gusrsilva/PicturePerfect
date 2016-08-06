@@ -30,23 +30,27 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.Preference;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -60,7 +64,6 @@ import com.pictureperfect.ui.camera.CameraSource;
 import com.pictureperfect.ui.camera.CameraSourcePreview;
 import com.pictureperfect.ui.camera.GraphicOverlay;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -85,25 +88,25 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private ImageButton settingsButton;
     private ImageView flash;
 
-    private static final int RC_HANDLE_GMS = 9001;
+    private final int RC_HANDLE_GMS = 9001;
     // permission request codes need to be < 256
-    private static final int RC_HANDLE_CAMERA_PERM = 2;
-    private static final int RC_HANDLE_STORAGE_PERM = 3;
+    private final int RC_HANDLE_CAMERA_PERM = 2;
+    private final int RC_HANDLE_STORAGE_PERM = 3;
 
     private final String IMAGE_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
 
-    private static int numPics = 1;
-    private static float eyeProb = (float) 0.5;
-    private static float smileThreshold = (float) 0.8;
+    private int numPics = 1;
+    private float eyeProb = (float) 0.5;
+    private float smileThreshold = (float) 0.8;
 
     private volatile int smilers = 0;
     private boolean captureSmilers = false;
-    private static boolean blinkProof = true;
+    private boolean blinkProof = true;
     private boolean retake = false;
-    private static boolean showOverlay = true;
+    private boolean showOverlay = true;
     private volatile int faces = 0;
-    private static int minSmiles = 1;
-    private static int minFaces = 1;
+    private int minSmiles = 1;
+    private int minFaces = 1;
     private volatile int count = 0;
     private AnimatorSet mAnimationSet;
 
@@ -117,13 +120,29 @@ public final class FaceTrackerActivity extends AppCompatActivity {
      * Initializes the UI and initiates the creation of a face detector.
      */
     @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle);
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        final TextView title = (TextView) findViewById(R.id.title_text);
+        title.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                if (title.getWidth() != 0) {
+                    int gradientWidth = title.getWidth();
+                    Log.d(TAG, "gradientWidth: " + gradientWidth);
+                    title.getPaint().setShader(
+                            new LinearGradient(0, 0, gradientWidth, 0
+                                    , ResourcesCompat.getColor(getResources(), R.color.camera_button_start, null)
+                                    , ResourcesCompat.getColor(getResources(), R.color.camera_button_end, null)
+                                    , Shader.TileMode.REPEAT));
+                    title.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                }
+            }
+        });
+
+
         updateSettings();
-
-
         initializeDrawables();
         initializeAnimation();
 
@@ -240,7 +259,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     private void initializeThumbnail() {
         File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "/calHacks");
-        Log.d(TAG, "loading dir: " + IMAGE_DIRECTORY);
         File[] files = dir.listFiles();
         if (files == null) {
             Log.d(TAG, "file list is null");
@@ -249,8 +267,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         File latestPicture = files[files.length - 1];
         String lastImagePath = latestPicture.getAbsolutePath();
-        Log.d(TAG, "lastImagePath: " + lastImagePath);
-        Picasso.with(this).load("file://"+lastImagePath).transform(new CircleTransform()).into(mThumbnail);
+        Picasso.with(this).load("file://" + lastImagePath).transform(new CircleTransform()).into(mThumbnail);
 
     }
 
@@ -424,6 +441,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(width, height)
+                .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
                 .setFacing(facing)
                 .setRequestedFps(32.0f)
                 .build();
