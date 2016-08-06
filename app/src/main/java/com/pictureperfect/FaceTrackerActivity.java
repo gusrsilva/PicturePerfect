@@ -33,6 +33,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.hardware.Camera;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -115,6 +116,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     private int CAMERA_FACING_BACK = CameraSource.CAMERA_FACING_BACK;
     private int CAMERA_FACING_FRONT = CameraSource.CAMERA_FACING_FRONT;
     private String TAG = "CalHacks";
+
+    private File[] mImagesTaken;
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -237,10 +240,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mThumbnail.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (v != null && v.getTag() != null) {
+                    if (getImagesTaken() != null) {
                         Intent intent = new Intent();
                         intent.setAction(android.content.Intent.ACTION_VIEW);
-                        intent.setDataAndType(Uri.fromFile(new File(v.getTag().toString())), "image/jpg");
+                        intent.setDataAndType(Uri.fromFile(new File(IMAGE_DIRECTORY)), "image/*");
                         startActivity(intent);
                     } else
                         Toast.makeText(getApplicationContext(), "Take a picture!", Toast.LENGTH_SHORT).show();
@@ -258,16 +261,16 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     }
 
     private void initializeThumbnail() {
-        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "/calHacks");
-        File[] files = dir.listFiles();
+        File[] files = getImagesTaken();
         if (files == null) {
             Log.d(TAG, "file list is null");
             return;
         }
 
-        File latestPicture = files[files.length - 1];
-        String lastImagePath = latestPicture.getAbsolutePath();
-        Picasso.with(this).load("file://" + lastImagePath).transform(new CircleTransform()).into(mThumbnail);
+        File latestImage = files[files.length - 1];
+        String latestImagePath = latestImage.getAbsolutePath();
+        Log.d(TAG, "latestImagePath: " + latestImagePath);
+        Picasso.with(this).load("file://" + latestImagePath).transform(new CircleTransform()).into(mThumbnail);
 
     }
 
@@ -554,6 +557,15 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 mCameraSource = null;
             }
         }
+    }
+
+    private File[] getImagesTaken()
+    {
+        if(mImagesTaken == null) {
+            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "/calHacks");
+            mImagesTaken = dir.listFiles();
+        }
+        return mImagesTaken;
     }
 
     //==============================================================================================
