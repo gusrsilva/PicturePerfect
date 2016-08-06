@@ -5,7 +5,7 @@ android {
     buildToolsVersion '24.0.1'
     defaultConfig {
         applicationId "edu.berkeley.calhacks.pictureperfect"
-        minSdkVersion 11
+        minSdkVersion 19
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -25,4 +25,6 @@ dependencies {
     compile 'com.android.support:support-v4:24.1.0'
     compile 'com.google.android.gms:play-services:9.2.1'
     compile 'com.android.support:design:24.1.0'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
 }

@@ -74,17 +74,22 @@
         android:background="@color/background_color"
         android:weightSum="3">
 
-
+        <RelativeLayout
+            android:layout_weight="1"
+            android:background="@drawable/circle_shadow"
+            android:layout_width="wrap_content"
+            android:paddingBottom="10dp"
+            android:layout_height="match_parent">
         <ImageView
             android:id="@+id/thumbnail"
             android:layout_width="@dimen/thumbnail_size"
             android:layout_height="@dimen/thumbnail_size"
             android:adjustViewBounds="true"
             android:scaleType="centerCrop"
-            android:src="@drawable/empty_pic"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical"
+            android:layout_centerInParent="true"
             android:layout_margin="20dp" />
+
+        </RelativeLayout>
 
         <RelativeLayout
             android:layout_weight="1"
