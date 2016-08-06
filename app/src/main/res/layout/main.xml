@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/topLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,6 +11,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:elevation="8dp"
         android:background="@color/background_color">
     <ImageButton
         android:id="@+id/flipButton"
@@ -17,10 +19,24 @@
         android:layout_height="@dimen/camera_option_icon_size"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:layout_margin="15dp"
+        android:layout_margin="20dp"
         android:background="#00000000"
         android:scaleType="fitXY"
-        android:src="@drawable/camerarotate" />
+        android:src="@drawable/camerarotate"
+        android:padding="5dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="P I C T U R E    P E R F E C T"
+            android:gravity="center"
+            android:textAlignment="gravity"
+            android:textColor="#44000000"
+            android:fontFamily="sans-serif-condensed"
+            android:textStyle="bold"
+            android:layout_toLeftOf="@+id/settingsButton"
+            android:layout_toRightOf="@+id/flipButton"/>
 
     <ImageButton
         android:id="@+id/settingsButton"
@@ -28,11 +44,12 @@
         android:layout_height="@dimen/camera_option_icon_size"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_margin="15dp"
+        android:layout_margin="20dp"
         android:background="#00000000"
         android:scaleType="fitCenter"
         android:src="@drawable/settings_white"
-        android:tint="@color/accent_color" />
+        android:tint="@color/accent_color"
+        android:padding="5dp" />
 
     </RelativeLayout>
 
@@ -40,7 +57,6 @@
         android:id="@+id/preview_holder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
         android:layout_gravity="center_vertical"
         android:layout_weight="1">
 
@@ -67,6 +83,7 @@
 
     <LinearLayout
         android:id="@+id/buttons_holder"
+        android:elevation="8dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
