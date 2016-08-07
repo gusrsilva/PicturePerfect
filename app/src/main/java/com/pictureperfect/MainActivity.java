@@ -311,21 +311,37 @@ public final class MainActivity extends AppCompatActivity {
         updateSettings();
     }
 
-    public void takePicture() {
-
-        mCameraSource.takePicture(new CameraSource.ShutterCallback() {
-            @Override
-            public void onShutter() {
-                mAnimationSet.start();
-                setShouldCaptureSmilers(false);
-            }
-        }, new CameraSource.PictureCallback() {
-            @Override
-            public void onPictureTaken(byte[] bytes) {
-                SavePictureTask save = new SavePictureTask();
-                save.execute(bytes);
-            }
-        });
+    public void takePicture(boolean isRetake) {
+        if(isRetake) {
+            mCameraSource.takePicture(new CameraSource.ShutterCallback() {
+                @Override
+                public void onShutter() {
+                    setShouldCaptureSmilers(false);
+                }
+            }, new CameraSource.PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] bytes) {
+                    SavePictureTask save = new SavePictureTask();
+                    save.execute(bytes);
+                }
+            });
+        }
+        else
+        {
+            mCameraSource.takePicture(new CameraSource.ShutterCallback() {
+                @Override
+                public void onShutter() {
+                    mAnimationSet.start();
+                    setShouldCaptureSmilers(false);
+                }
+            }, new CameraSource.PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] bytes) {
+                    SavePictureTask save = new SavePictureTask();
+                    save.execute(bytes);
+                }
+            });
+        }
     }
 
     /**
@@ -580,16 +596,20 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             if (checkConditions()) {
-                takePicture();
+                takePicture(false);
+            }
+            else if(checkRetakeConditions()) {
+                takePicture(true);
             }
         }
 
         private boolean checkConditions() {
-            long TIME_BETWEEN_THRESHOLD = 2000;
-            if (mShouldRetake && System.currentTimeMillis() > mGlobalTime + TIME_BETWEEN_THRESHOLD && mSmilers >= mMinSmiles) {
-                return true;
-            }
             return mSmilers >= mMinSmiles && mShouldCaptureSmilers && mCount < mNumPics && mFaces >= mMinFaces;
+        }
+
+        private boolean checkRetakeConditions() {
+            long TIME_BETWEEN_THRESHOLD = 2000;
+            return (mShouldRetake && System.currentTimeMillis() > mGlobalTime + TIME_BETWEEN_THRESHOLD && mSmilers >= mMinSmiles);
         }
 
         /**
