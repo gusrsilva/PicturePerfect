@@ -33,7 +33,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.hardware.Camera;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -74,58 +73,45 @@ import java.util.ArrayList;
 //import com.google.android.gms.vision.CameraSource;
 
 /**
- * Activity for the face tracker app.  This app detects faces with the rear facing camera, and draws
+ * Activity for the face tracker app.  This app detects mFaces with the rear facing camera, and draws
  * overlay graphics to indicate the position, size, and ID of each face.
  */
-public final class FaceTrackerActivity extends AppCompatActivity {
+public final class MainActivity extends AppCompatActivity {
+    private static final String TAG = "Perfect";
+    private static final String IMAGE_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/Perfect/";
+
     private CameraSource mCameraSource = null;
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
     private Button mCameraButton;
-    private Button addMinSmile;
-    private Button subMinSmile;
     private ImageView mThumbnail;
-    private ImageButton flipButton;
-    private ImageButton settingsButton;
-    private ImageView flash;
+    private ImageView mFlashView;
 
     private final int RC_HANDLE_GMS = 9001;
-    // permission request codes need to be < 256
     private final int RC_HANDLE_CAMERA_PERM = 2;
     private final int RC_HANDLE_STORAGE_PERM = 3;
 
-    private final String IMAGE_DIRECTORY = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/calHacks/";
+    private int mNumPics = 1;
+    private float mEyeProbability = (float) 0.5;
+    private float mSmileThreshold = (float) 0.8;
 
-    private int numPics = 1;
-    private float eyeProb = (float) 0.5;
-    private float smileThreshold = (float) 0.8;
-
-    private volatile int smilers = 0;
-    private boolean captureSmilers = false;
-    private boolean blinkProof = true;
-    private boolean retake = false;
-    private boolean showOverlay = true;
-    private volatile int faces = 0;
-    private int minSmiles = 1;
-    private int minFaces = 1;
-    private volatile int count = 0;
+    private volatile int mSmilers = 0;
+    private boolean mShouldCaptureSmilers = false;
+    private boolean mIsBlinkProofOn = true;
+    private boolean mShouldRetake = false;
+    private boolean mShowOverlay = true;
+    private volatile int mFaces = 0;
+    private int mMinSmiles = 1;
+    private int mMinFaces = 1;
+    private volatile int mCount = 0;
     private AnimatorSet mAnimationSet;
-
-    private long global_time = System.currentTimeMillis();
-    private long TIME_BETWEEN_THRESHOLD = 2000;
-    private int CAMERA_FACING_BACK = CameraSource.CAMERA_FACING_BACK;
-    private int CAMERA_FACING_FRONT = CameraSource.CAMERA_FACING_FRONT;
-    private String TAG = "CalHacks";
-
+    private long mGlobalTime = System.currentTimeMillis();
     private File[] mImagesTaken;
 
-    /**
-     * Initializes the UI and initiates the creation of a face detector.
-     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
+        setContentView(R.layout.activity_main);
 
         final TextView title = (TextView) findViewById(R.id.title_text);
         title.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -149,24 +135,24 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         initializeDrawables();
         initializeAnimation();
 
-        addMinSmile = (Button) findViewById(R.id.addMinFaces);
+        Button addMinSmile = (Button) findViewById(R.id.addMinFaces);
         if (addMinSmile != null) {
             addMinSmile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    minSmiles++;
-                    Log.d("Calhacks", "minFaces: " + minSmiles);
+                    mMinSmiles++;
+                    Log.d("Calhacks", "mMinFaces: " + mMinSmiles);
                 }
             });
         }
-        subMinSmile = (Button) findViewById(R.id.subMinFaces);
+        Button subMinSmile = (Button) findViewById(R.id.subMinFaces);
         if (subMinSmile != null) {
             subMinSmile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (minSmiles > 1) {
-                        minSmiles--;
-                        Log.d("Calhacks", "minFaces: " + minSmiles);
+                    if (mMinSmiles > 1) {
+                        mMinSmiles--;
+                        Log.d("Calhacks", "mMinFaces: " + mMinSmiles);
                     }
                 }
             });
@@ -188,19 +174,40 @@ public final class FaceTrackerActivity extends AppCompatActivity {
 
     }
 
-    public void setCaptureSmilers(boolean bool) {
-        captureSmilers = bool;
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        startCameraSource();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mPreview.stop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mCameraSource != null) {
+            mCameraSource.release();
+        }
+    }
+
+    public void setShouldCaptureSmilers(boolean bool) {
+        mShouldCaptureSmilers = bool;
         mCameraButton.setActivated(bool);
     }
 
     private void updateSettings() {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         if (sharedPrefs != null) {
-            blinkProof = sharedPrefs.getBoolean("blinkProof", true);
-            minFaces = sharedPrefs.getInt("minFaces", 1);
-            smileThreshold = (float) sharedPrefs.getInt("smileThreshold", 80) / (float) 100.;
-            eyeProb = (float) sharedPrefs.getInt("blinkThreshold", 50) / (float) 100.;
-            showOverlay = sharedPrefs.getBoolean("showOverlay", true);
+            mIsBlinkProofOn = sharedPrefs.getBoolean("mIsBlinkProofOn", true);
+            mMinFaces = sharedPrefs.getInt("mMinFaces", 1);
+            mSmileThreshold = (float) sharedPrefs.getInt("mSmileThreshold", 80) / (float) 100.;
+            mEyeProbability = (float) sharedPrefs.getInt("blinkThreshold", 50) / (float) 100.;
+            mShowOverlay = sharedPrefs.getBoolean("mShowOverlay", true);
         }
     }
 
@@ -209,10 +216,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         mCameraButton = (Button) findViewById(R.id.camera_button);
         mThumbnail = (ImageView) findViewById(R.id.thumbnail);
-        flipButton = (ImageButton) findViewById(R.id.flipButton);
-        flash = (ImageView) findViewById(R.id.flash);
-        flash.setVisibility(View.INVISIBLE);
-        settingsButton = (ImageButton) findViewById(R.id.settingsButton);
+        ImageButton flipButton = (ImageButton) findViewById(R.id.flipButton);
+        mFlashView = (ImageView) findViewById(R.id.flash);
+        mFlashView.setVisibility(View.INVISIBLE);
+        ImageButton settingsButton = (ImageButton) findViewById(R.id.settingsButton);
 
         if (settingsButton != null) {
             settingsButton.setOnClickListener(new View.OnClickListener() {
@@ -228,10 +235,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mCameraButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (captureSmilers) {
-                        setCaptureSmilers(false);
+                    if (mShouldCaptureSmilers) {
+                        setShouldCaptureSmilers(false);
                     } else {
-                        setCaptureSmilers(true);
+                        setShouldCaptureSmilers(true);
                     }
                 }
             });
@@ -275,10 +282,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
     }
 
     public void initializeAnimation() {
-        if (flash != null) {
-            ObjectAnimator fadeOut = ObjectAnimator.ofFloat(flash, "alpha", 7f, 0f);
+        if (mFlashView != null) {
+            ObjectAnimator fadeOut = ObjectAnimator.ofFloat(mFlashView, "alpha", 7f, 0f);
             fadeOut.setDuration(250);
-            ObjectAnimator fadeIn = ObjectAnimator.ofFloat(flash, "alpha", 0f, 7f);
+            ObjectAnimator fadeIn = ObjectAnimator.ofFloat(mFlashView, "alpha", 0f, 7f);
             fadeIn.setDuration(250);
 
             mAnimationSet = new AnimatorSet();
@@ -288,7 +295,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             mAnimationSet.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationStart(Animator animation) {
-                    flash.setVisibility(View.VISIBLE);
+                    mFlashView.setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -310,22 +317,22 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         int facing = mCameraSource.getCameraFacing();
         mCameraSource.release();
         mCameraSource = null;
-        if (facing == CAMERA_FACING_BACK)
-            createCameraSource(CAMERA_FACING_FRONT);
+        if (facing == CameraSource.CAMERA_FACING_BACK)
+            createCameraSource(CameraSource.CAMERA_FACING_FRONT);
         else
-            createCameraSource(CAMERA_FACING_BACK);
+            createCameraSource(CameraSource.CAMERA_FACING_BACK);
 
         startCameraSource();
     }
 
     public void resetVars() {
-        numPics = 1;
-        smilers = 0;
-        setCaptureSmilers(false);
-        retake = false;
-        faces = 0;
-        minSmiles = 1;
-        count = 0;
+        mNumPics = 1;
+        mSmilers = 0;
+        setShouldCaptureSmilers(false);
+        mShouldRetake = false;
+        mFaces = 0;
+        mMinSmiles = 1;
+        mCount = 0;
         updateSettings();
     }
 
@@ -430,7 +437,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             // Note: The first time that an app using face API is installed on a device, GMS will
             // download a native library to the device in order to do detection.  Usually this
             // completes before the app is run for the first time.  But if that download has not yet
-            // completed, then the above call will not detect any faces.
+            // completed, then the above call will not detect any mFaces.
             //
             // isOperational() can be used to check if the required native library is currently
             // available.  The detector will automatically become operational once the library
@@ -448,37 +455,6 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 .setFacing(facing)
                 .setRequestedFps(32.0f)
                 .build();
-    }
-
-    /**
-     * Restarts the camera.
-     */
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        startCameraSource();
-    }
-
-    /**
-     * Stops the camera.
-     */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mPreview.stop();
-    }
-
-    /**
-     * Releases the resources associated with the camera source, the associated detector, and the
-     * rest of the processing pipeline.
-     */
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mCameraSource != null) {
-            mCameraSource.release();
-        }
     }
 
     /**
@@ -559,10 +535,9 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         }
     }
 
-    private File[] getImagesTaken()
-    {
-        if(mImagesTaken == null) {
-            File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "/calHacks");
+    private File[] getImagesTaken() {
+        if (mImagesTaken == null) {
+            File dir = new File(IMAGE_DIRECTORY);
             mImagesTaken = dir.listFiles();
         }
         return mImagesTaken;
@@ -603,8 +578,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         public void onNewItem(int faceId, Face item) {
             mFaceGraphic.setId(faceId);
-            faces++;
-            count = 0;
+            mFaces++;
+            mCount = 0;
         }
 
         /**
@@ -612,7 +587,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
          */
         @Override
         public void onUpdate(FaceDetector.Detections<Face> detectionResults, Face face) {
-            if (showOverlay) {
+            if (mShowOverlay) {
                 mOverlay.add(mFaceGraphic);
                 mFaceGraphic.updateFace(face);
             } else if (mOverlay != null) {
@@ -620,26 +595,27 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 mOverlay = null;
             }
 
-            if (face.getIsSmilingProbability() > smileThreshold && !smiling) {
-                smilers++;
+            if (face.getIsSmilingProbability() > mSmileThreshold && !smiling) {
+                mSmilers++;
                 smiling = true;
-            } else if (face.getIsSmilingProbability() < smileThreshold && smiling) {
-                smilers--;
-                count = 0;
+            } else if (face.getIsSmilingProbability() < mSmileThreshold && smiling) {
+                mSmilers--;
+                mCount = 0;
                 smiling = false;
             }
 
             if (checkConditions()) {
-                Log.d("Calhacks", "Smilers: " + smilers + " Faces: " + faces + " Count = " + ++count);
+                Log.d("Calhacks", "Smilers: " + mSmilers + " Faces: " + mFaces + " Count = " + ++mCount);
                 takePicture();
             }
         }
 
         public boolean checkConditions() {
-            if (retake && System.currentTimeMillis() > global_time + TIME_BETWEEN_THRESHOLD && smilers >= minSmiles) {
+            long TIME_BETWEEN_THRESHOLD = 2000;
+            if (mShouldRetake && System.currentTimeMillis() > mGlobalTime + TIME_BETWEEN_THRESHOLD && mSmilers >= mMinSmiles) {
                 return true;
             }
-            return smilers >= minSmiles && captureSmilers && count < numPics && faces >= minFaces;
+            return mSmilers >= mMinSmiles && mShouldCaptureSmilers && mCount < mNumPics && mFaces >= mMinFaces;
         }
 
         /**
@@ -659,8 +635,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
         @Override
         public void onDone() {
             mOverlay.remove(mFaceGraphic);
-            faces--;
-            count = 0;
+            mFaces--;
+            mCount = 0;
         }
     }
 
@@ -690,7 +666,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
             }
 
             // If someone is blinking with both eyes, take another picture.
-            if (blinkProof) {
+            if (mIsBlinkProofOn) {
                 FaceDetector detector = new FaceDetector.Builder(getApplicationContext())
                         .setTrackingEnabled(false)
                         .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
@@ -706,10 +682,10 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                     float rightEyeProb = face.getIsRightEyeOpenProbability();
                     float smileProb = face.getIsSmilingProbability();
                     Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
-                    if (leftEyeProb < eyeProb && rightEyeProb < eyeProb && leftEyeProb >= 0) {
-                        retake = true;
-                        //count--;
-                        global_time = System.currentTimeMillis();
+                    if (leftEyeProb < mEyeProbability && rightEyeProb < mEyeProbability && leftEyeProb >= 0) {
+                        mShouldRetake = true;
+                        //mCount--;
+                        mGlobalTime = System.currentTimeMillis();
                         Log.d("Calhacks", "Don't blink!");
                         objs.add("Blinked");
                         return objs;
@@ -733,7 +709,7 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 objs.add(filePath);
                 objs.add(bitmap);
 
-                retake = false;
+                mShouldRetake = false;
                 return objs;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -753,8 +729,8 @@ public final class FaceTrackerActivity extends AppCompatActivity {
                 String filePath = (String) results.get(0);
                 if (mThumbnail != null) {
                     Log.d(TAG, "Updating thumbnail: " + filePath);
-                    Picasso.with(FaceTrackerActivity.this).load(filePath).transform(new CircleTransform()).into(mThumbnail);
-                    setCaptureSmilers(false);
+                    Picasso.with(MainActivity.this).load(filePath).transform(new CircleTransform()).into(mThumbnail);
+                    setShouldCaptureSmilers(false);
                 } else {
                     Log.d(TAG, "null thumbnail");
                 }
