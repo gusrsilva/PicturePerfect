@@ -94,17 +94,18 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/circle_shadow"
-            android:paddingBottom="10dp">
+>
 
             <ImageView
                 android:id="@+id/thumbnail"
+                android:background="@drawable/circle_shadow"
+                android:paddingBottom="10dp"
                 android:layout_width="@dimen/thumbnail_size"
                 android:layout_height="@dimen/thumbnail_size"
                 android:layout_centerInParent="true"
                 android:layout_margin="20dp"
                 android:adjustViewBounds="true"
-                android:scaleType="centerCrop" />
+                android:scaleType="fitCenter" />
 
         </RelativeLayout>
 

@@ -48,6 +48,7 @@ import com.google.android.gms.vision.face.FaceDetector;
 import com.pictureperfect.ui.camera.CameraSource;
 import com.pictureperfect.ui.camera.CameraSourcePreview;
 import com.pictureperfect.ui.camera.GraphicOverlay;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -62,9 +63,9 @@ public final class MainActivity extends AppCompatActivity {
     private CameraSource mCameraSource = null;
     private CameraSourcePreview mPreview;
     private GraphicOverlay mGraphicOverlay;
-    private Button mCameraButton;
     private ImageView mThumbnail;
     private ImageView mFlashView;
+    private Button mCameraButton;
 
     private final int RC_HANDLE_GMS = 9001;
     private final int RC_HANDLE_CAMERA_PERM = 2;
@@ -98,7 +99,6 @@ public final class MainActivity extends AppCompatActivity {
             public void onGlobalLayout() {
                 if (title.getWidth() != 0) {
                     int gradientWidth = title.getWidth();
-                    Log.d(TAG, "gradientWidth: " + gradientWidth);
                     title.getPaint().setShader(
                             new LinearGradient(0, 0, gradientWidth, 0
                                     , ResourcesCompat.getColor(getResources(), R.color.camera_button_start, null)
@@ -111,31 +111,9 @@ public final class MainActivity extends AppCompatActivity {
 
 
         updateSettings();
-        initializeDrawables();
+        initializeViews();
+        initializeThumbnail();
         initializeAnimation();
-
-        Button addMinSmile = (Button) findViewById(R.id.addMinFaces);
-        if (addMinSmile != null) {
-            addMinSmile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mMinSmiles++;
-                    Log.d("Calhacks", "mMinFaces: " + mMinSmiles);
-                }
-            });
-        }
-        Button subMinSmile = (Button) findViewById(R.id.subMinFaces);
-        if (subMinSmile != null) {
-            subMinSmile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (mMinSmiles > 1) {
-                        mMinSmiles--;
-                        Log.d("Calhacks", "mMinFaces: " + mMinSmiles);
-                    }
-                }
-            });
-        }
 
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
@@ -190,7 +168,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void initializeDrawables() {
+    public void initializeViews() {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         mCameraButton = (Button) findViewById(R.id.camera_button);
@@ -209,7 +187,6 @@ public final class MainActivity extends AppCompatActivity {
                 }
             });
         }
-        initializeThumbnail();
         if (mCameraButton != null) {
             mCameraButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -244,6 +221,27 @@ public final class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        Button addMinSmile = (Button) findViewById(R.id.addMinFaces);
+        if (addMinSmile != null) {
+            addMinSmile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mMinSmiles++;
+                }
+            });
+        }
+        Button subMinSmile = (Button) findViewById(R.id.subMinFaces);
+        if (subMinSmile != null) {
+            subMinSmile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (mMinSmiles > 1) {
+                        mMinSmiles--;
+                    }
+                }
+            });
+        }
     }
 
     private void initializeThumbnail() {
@@ -255,9 +253,7 @@ public final class MainActivity extends AppCompatActivity {
 
         File latestImage = files[files.length - 1];
         String latestImagePath = latestImage.getAbsolutePath();
-        Log.d(TAG, "latestImagePath: " + latestImagePath);
         Picasso.with(this).load("file://" + latestImagePath).transform(new CircleTransform()).into(mThumbnail);
-
     }
 
     public void initializeAnimation() {
@@ -321,6 +317,7 @@ public final class MainActivity extends AppCompatActivity {
             @Override
             public void onShutter() {
                 mAnimationSet.start();
+                setShouldCaptureSmilers(false);
             }
         }, new CameraSource.PictureCallback() {
             @Override
@@ -461,7 +458,6 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Log.d(TAG, "Camera permission granted - initialize the camera source");
             // we have permission, so create the camerasource
             createCameraSource(CameraSource.CAMERA_FACING_FRONT);
             return;
@@ -584,12 +580,11 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             if (checkConditions()) {
-                Log.d("Calhacks", "Smilers: " + mSmilers + " Faces: " + mFaces + " Count = " + ++mCount);
                 takePicture();
             }
         }
 
-        public boolean checkConditions() {
+        private boolean checkConditions() {
             long TIME_BETWEEN_THRESHOLD = 2000;
             if (mShouldRetake && System.currentTimeMillis() > mGlobalTime + TIME_BETWEEN_THRESHOLD && mSmilers >= mMinSmiles) {
                 return true;
@@ -619,29 +614,22 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class SavePictureTask extends AsyncTask<byte[], Integer, ArrayList<Object>> {
+    public class SavePictureTask extends AsyncTask<byte[], Integer, String> {
 
         @Override
         protected void onPreExecute() {
-            //Do Nothing, A placeholder for potential code
         }
 
         @Override
-        protected ArrayList<Object> doInBackground(byte[]... params) {
+        protected String doInBackground(byte[]... params) {
             byte[] bytes = params[0];
-            ArrayList<Object> objs = new ArrayList<>();
 
-            //Toast.makeText(getApplicationContext(), "Picture taken...", Toast.LENGTH_SHORT).show();
             if (bytes == null) {
-                //Toast.makeText(getApplicationContext(), "Null bytes", Toast.LENGTH_SHORT).show();
-                objs.add("Failed");
-                return objs;
+                return null;
             }
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             if (bitmap == null) {
-                //Toast.makeText(getApplicationContext(), "Null bitmap", Toast.LENGTH_SHORT).show();
-                objs.add("Failed");
-                return objs;
+                return null;
             }
 
             // If someone is blinking with both eyes, take another picture.
@@ -660,14 +648,13 @@ public final class MainActivity extends AppCompatActivity {
                     float leftEyeProb = face.getIsLeftEyeOpenProbability();
                     float rightEyeProb = face.getIsRightEyeOpenProbability();
                     float smileProb = face.getIsSmilingProbability();
-                    Log.d("Calhacks", "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
+                    Log.d(TAG, "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
                     if (leftEyeProb < mEyeProbability && rightEyeProb < mEyeProbability && leftEyeProb >= 0) {
                         mShouldRetake = true;
                         //mCount--;
                         mGlobalTime = System.currentTimeMillis();
-                        Log.d("Calhacks", "Don't blink!");
-                        objs.add("Blinked");
-                        return objs;
+                        Log.d(TAG, "Don't blink!");
+                        return null;
                     }
                 }
             }
@@ -685,30 +672,35 @@ public final class MainActivity extends AppCompatActivity {
                 mFileOutputStream.flush();
                 mFileOutputStream.close();
 
-                objs.add(filePath);
-                objs.add(bitmap);
-
                 mShouldRetake = false;
-                return objs;
+                return filePath;
             } catch (IOException e) {
                 e.printStackTrace();
-                return (new ArrayList<Object>());
+                return null;
             }
         }
 
         @Override
-        protected void onPostExecute(ArrayList<Object> results) {
-            if (results == null || results.size() == 0) {
-                Log.d(TAG, "Async Failed");
-                return;
-            } else if (results.size() == 1) {
-                String s = (String) results.get(0);
-                Log.d(TAG, "Async Result: " + s);
-            } else {
-                String filePath = (String) results.get(0);
+        protected void onPostExecute(String filePath) {
+            if (filePath != null && !filePath.isEmpty()) {
                 if (mThumbnail != null) {
                     Log.d(TAG, "Updating thumbnail: " + filePath);
-                    Picasso.with(MainActivity.this).load(filePath).transform(new CircleTransform()).into(mThumbnail);
+                    Picasso
+                            .with(MainActivity.this)
+                            .load("file://" + filePath)
+                            .transform(new CircleTransform())
+                            .into(mThumbnail
+                                    , new Callback() {
+                                        @Override
+                                        public void onSuccess() {
+                                            Log.d(TAG, "Thumbnail loaded successfully!");
+                                        }
+
+                                        @Override
+                                        public void onError() {
+                                            Log.d(TAG, "Thumbnail loaded failed!");
+                                        }
+                                    });
                     setShouldCaptureSmilers(false);
                 } else {
                     Log.d(TAG, "null thumbnail");
