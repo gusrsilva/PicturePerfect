@@ -159,6 +159,8 @@ public class CameraSource {
      */
     private Map<byte[], ByteBuffer> mBytesToByteBuffer = new HashMap<>();
 
+    private Camera.PreviewCallback mPreviewCallback;
+
     //==============================================================================================
     // Builder
     //==============================================================================================
@@ -498,6 +500,18 @@ public class CameraSource {
                 mCamera.takePicture(startCallback, null, null, doneCallback);
             }
         }
+    }
+
+    public void setPreviewCallback(Camera.PreviewCallback cameraPreviewCallback)
+    {
+            Log.d("Perfect ", "Setting preview callback");
+            mPreviewCallback = cameraPreviewCallback;
+    }
+
+    public void removePreviewCallback()
+    {
+        Log.d("Perfect ", "Removing preview callback");
+        mPreviewCallback = null;
     }
 
     /**
@@ -1041,10 +1055,14 @@ public class CameraSource {
     /**
      * Called when the camera has a new preview frame.
      */
-    private class CameraPreviewCallback implements Camera.PreviewCallback {
+    public class CameraPreviewCallback implements Camera.PreviewCallback {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
             mFrameProcessor.setNextFrame(data, camera);
+            if(mPreviewCallback != null)
+            {
+                mPreviewCallback.onPreviewFrame(data, camera);
+            }
         }
     }
 

@@ -15,9 +15,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.Shader;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -51,7 +56,9 @@ import com.pictureperfect.ui.camera.GraphicOverlay;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,6 +87,7 @@ public final class MainActivity extends AppCompatActivity {
     private boolean mIsBlinkProofOn = true;
     private boolean mShouldRetake = false;
     private boolean mShowOverlay = true;
+    private boolean mIsSmartChooseEnabled = true;   // TODO: Make a setting
     private volatile int mFaces = 0;
     private int mMinSmiles = 1;
     private int mMinFaces = 1;
@@ -87,6 +95,9 @@ public final class MainActivity extends AppCompatActivity {
     private AnimatorSet mAnimationSet;
     private long mGlobalTime = System.currentTimeMillis();
     private File[] mImagesTaken;
+
+    // Necessary global parameters for
+    private ArrayList<byte[]> mSmartChooseByteList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -134,7 +145,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
+        updateSettings();
         startCameraSource();
     }
 
@@ -165,10 +176,11 @@ public final class MainActivity extends AppCompatActivity {
             mSmileThreshold = (float) sharedPrefs.getInt("mSmileThreshold", 80) / (float) 100.;
             mEyeProbability = (float) sharedPrefs.getInt("blinkThreshold", 50) / (float) 100.;
             mShowOverlay = sharedPrefs.getBoolean("mShowOverlay", true);
+            mIsSmartChooseEnabled = sharedPrefs.getBoolean("smartChoose", true);
         }
     }
 
-    public void initializeViews() {
+    private void initializeViews() {
         mPreview = (CameraSourcePreview) findViewById(R.id.preview);
         mGraphicOverlay = (GraphicOverlay) findViewById(R.id.faceOverlay);
         mCameraButton = (Button) findViewById(R.id.camera_button);
@@ -191,7 +203,12 @@ public final class MainActivity extends AppCompatActivity {
             mCameraButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mShouldCaptureSmilers) {
+                    if(mIsSmartChooseEnabled)
+                    {
+                        Log.d(TAG, "smart choose enabled");
+                        takeSmartPicture();
+                    }
+                    else if (mShouldCaptureSmilers) {
                         setShouldCaptureSmilers(false);
                     } else {
                         setShouldCaptureSmilers(true);
@@ -256,7 +273,7 @@ public final class MainActivity extends AppCompatActivity {
         Picasso.with(this).load("file://" + latestImagePath).transform(new CircleTransform()).into(mThumbnail);
     }
 
-    public void initializeAnimation() {
+    private void initializeAnimation() {
         if (mFlashView != null) {
             ObjectAnimator fadeOut = ObjectAnimator.ofFloat(mFlashView, "alpha", 7f, 0f);
             fadeOut.setDuration(250);
@@ -282,7 +299,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void flipCamera() {
+    private void flipCamera() {
         resetVars();
         if (mCameraSource == null) {
             Toast.makeText(getApplicationContext(), "Null CameraSource", Toast.LENGTH_SHORT).show();
@@ -300,7 +317,7 @@ public final class MainActivity extends AppCompatActivity {
         startCameraSource();
     }
 
-    public void resetVars() {
+    private void resetVars() {
         mNumPics = 1;
         mSmilers = 0;
         setShouldCaptureSmilers(false);
@@ -311,8 +328,8 @@ public final class MainActivity extends AppCompatActivity {
         updateSettings();
     }
 
-    public void takePicture(boolean isRetake) {
-        if(isRetake) {
+    private void takePicture(boolean isRetake) {
+        if (isRetake) {
             mCameraSource.takePicture(new CameraSource.ShutterCallback() {
                 @Override
                 public void onShutter() {
@@ -325,9 +342,7 @@ public final class MainActivity extends AppCompatActivity {
                     save.execute(bytes);
                 }
             });
-        }
-        else
-        {
+        } else {
             mCameraSource.takePicture(new CameraSource.ShutterCallback() {
                 @Override
                 public void onShutter() {
@@ -342,6 +357,82 @@ public final class MainActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void takeSmartPicture()
+    {
+        mSmartChooseByteList = new ArrayList<>();
+        mCameraButton.setActivated(true);
+
+        mCameraSource.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(byte[] data, Camera camera) {
+                if(data != null) {
+                    mSmartChooseByteList.add(data);
+                    Log.d(TAG, "onPreviewFrame: " + mSmartChooseByteList.size());
+                }
+                else
+                {
+                    Log.d(TAG, "data is null");
+                }
+                if(mSmartChooseByteList.size() >= 3)
+                {
+                    mCameraSource.removePreviewCallback();
+                    SmartPictureTask task = new SmartPictureTask(mSmartChooseByteList
+                            , camera.getParameters().getPreviewSize().width
+                            , camera.getParameters().getPreviewSize().height);
+                    task.execute();
+
+                    mCameraButton.setActivated(false);
+                }
+            }
+        });
+    }
+
+    private Bitmap getCorrectlyOrientedBitmap(byte[] data, int width, int height)
+    {
+        String filePath = generateTempImagePath(1);
+        File tempPictureFile = new File(filePath);
+        if (tempPictureFile.exists()) {
+            tempPictureFile.delete();
+        }
+
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(tempPictureFile);
+
+            Bitmap bitmap = getBitmapFromYuvBytes(data, width, height);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+            fileOutputStream.close();
+            ExifInterface exif=new ExifInterface(filePath);
+
+            Log.d(TAG, "EXIF value" + exif.getAttribute(ExifInterface.TAG_ORIENTATION));
+            if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("6")){
+                bitmap= rotateBitmap(bitmap, 90);
+            } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("8")){
+                bitmap= rotateBitmap(bitmap, 270);
+            } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("3")){
+                bitmap= rotateBitmap(bitmap, 180);
+            } else if(exif.getAttribute(ExifInterface.TAG_ORIENTATION).equalsIgnoreCase("0")){
+                bitmap= rotateBitmap(bitmap, 270);
+            }
+
+            return bitmap;
+
+        } catch (FileNotFoundException e) {
+            Log.d("Info", "File not found: " + e.getMessage());
+        } catch (IOException e) {
+            Log.d("TAG", "Error accessing file: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private Bitmap getBitmapFromYuvBytes(byte[] data, int width, int height)
+    {
+        YuvImage yuvimage=new YuvImage(data, ImageFormat.NV21, width, height, null);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        yuvimage.compressToJpeg(new Rect(0, 0, width, height), 80, baos);
+        byte[] jpegData = baos.toByteArray();
+        return BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
     }
 
     /**
@@ -443,7 +534,6 @@ public final class MainActivity extends AppCompatActivity {
 
         mCameraSource = new CameraSource.Builder(context, detector)
                 .setRequestedPreviewSize(width, height)
-                .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
                 .setFacing(facing)
                 .setRequestedFps(32.0f)
                 .build();
@@ -495,10 +585,6 @@ public final class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    //==============================================================================================
-    // Camera Source Preview
-    //==============================================================================================
-
     /**
      * Starts or restarts the camera source, if it exists.  If the camera source doesn't exist yet
      * (e.g., because onResume was called before the camera source was created), this will be called
@@ -534,9 +620,78 @@ public final class MainActivity extends AppCompatActivity {
         return mImagesTaken;
     }
 
-    //==============================================================================================
-    // Graphic Face Tracker
-    //==============================================================================================
+    private Bitmap smartChoose(ArrayList<Bitmap> bitmaps) {
+        FaceDetector detector = new FaceDetector.Builder(getApplicationContext())
+                .setTrackingEnabled(false)
+                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
+                .setMode(FaceDetector.ACCURATE_MODE)
+                .setLandmarkType(FaceDetector.NO_LANDMARKS)
+                .build();
+
+        Bitmap bestBitmap = null;
+        float bestSum = -1;
+
+        for (Bitmap bitmap : bitmaps) {
+            Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+            SparseArray<Face> faces = detector.detect(frame);
+            float leftEyeProb = 0, rightEyeProb = 0, smileProb = 0;
+            for (int i = 0; i < faces.size(); ++i) {
+                Face face = faces.valueAt(i);
+                leftEyeProb += face.getIsLeftEyeOpenProbability();
+                rightEyeProb += face.getIsRightEyeOpenProbability();
+                smileProb += face.getIsSmilingProbability();
+            }
+            Log.d(TAG, "Left: " + leftEyeProb + " Right: " + rightEyeProb + " Smile: " + smileProb);
+            float currentSum = leftEyeProb + rightEyeProb + smileProb;
+            if(currentSum > bestSum) {
+                bestBitmap = bitmap;
+                bestSum = currentSum;
+            }
+        }
+        Log.d(TAG, "best sum: " + bestSum);
+        return  bestBitmap;
+    }
+
+    private boolean saveBitmap(Bitmap bitmap, String destPath) {
+        File newdir = new File(IMAGE_DIRECTORY);
+        if (!newdir.isDirectory()) {
+            newdir.mkdirs();
+        }
+        File file = new File(destPath);
+        try {
+            FileOutputStream mFileOutputStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutputStream);
+
+            mFileOutputStream.flush();
+            mFileOutputStream.close();
+            return true;
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static Bitmap rotateBitmap(Bitmap bitmap, int degree) {
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
+
+        Matrix mtx = new Matrix();
+        //       mtx.postRotate(degree);
+        mtx.setRotate(degree);
+
+        return Bitmap.createBitmap(bitmap, 0, 0, w, h, mtx, true);
+    }
+
+    private String generateDestinationPath()
+    {
+        return IMAGE_DIRECTORY  + System.currentTimeMillis() + ".jpg";
+    }
+
+    private String generateTempImagePath(int identifier)
+    {
+        return getApplicationContext().getExternalCacheDir().getAbsolutePath() + "/" + identifier + "-temp.jpg";
+    }
 
     /**
      * Factory for creating a face tracker to be associated with a new face.  The multiprocessor
@@ -597,8 +752,7 @@ public final class MainActivity extends AppCompatActivity {
 
             if (checkConditions()) {
                 takePicture(false);
-            }
-            else if(checkRetakeConditions()) {
+            } else if (checkRetakeConditions()) {
                 takePicture(true);
             }
         }
@@ -634,7 +788,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    public class SavePictureTask extends AsyncTask<byte[], Integer, String> {
+    private class SavePictureTask extends AsyncTask<byte[], Integer, String> {
 
         @Override
         protected void onPreExecute() {
@@ -679,35 +833,25 @@ public final class MainActivity extends AppCompatActivity {
                 }
             }
 
-            File newdir = new File(IMAGE_DIRECTORY);
-            if (!newdir.isDirectory()) {
-                newdir.mkdirs();
-            }
-            String filePath = IMAGE_DIRECTORY + System.currentTimeMillis() + ".jpg";
-            File file = new File(filePath);
-            try {
-                FileOutputStream mFileOutputStream = new FileOutputStream(file);
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, mFileOutputStream);
-
-                mFileOutputStream.flush();
-                mFileOutputStream.close();
-
+            String filePath = generateDestinationPath();
+            boolean wasSaveSuccessful = saveBitmap(bitmap, filePath);
+            if(wasSaveSuccessful) {
                 mShouldRetake = false;
                 return filePath;
-            } catch (IOException e) {
-                e.printStackTrace();
+            }
+            else {
                 return null;
             }
         }
 
         @Override
-        protected void onPostExecute(String filePath) {
-            if (filePath != null && !filePath.isEmpty()) {
+        protected void onPostExecute(String destPath) {
+            if (destPath != null && !destPath.isEmpty()) {
                 if (mThumbnail != null) {
-                    Log.d(TAG, "Updating thumbnail: " + filePath);
+                    Log.d(TAG, "Updating thumbnail: " + destPath);
                     Picasso
                             .with(MainActivity.this)
-                            .load("file://" + filePath)
+                            .load("file://" + destPath)
                             .transform(new CircleTransform())
                             .into(mThumbnail
                                     , new Callback() {
@@ -729,4 +873,47 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    private class SmartPictureTask extends AsyncTask<Void, Integer, Boolean> {
+
+        private ArrayList<byte[]> mByteListsToProcess;
+        private ArrayList<Bitmap> mProcessedBitmaps = new ArrayList<>();
+        private int mWidth;
+        private int mHeight;
+
+        public SmartPictureTask(ArrayList<byte[]> byteListsToProcess, int width, int height)
+        {
+            mByteListsToProcess = byteListsToProcess;
+            mWidth = width;
+            mHeight = height;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            Log.d(TAG, "Taking smart picture");
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            for(byte[] data: mByteListsToProcess)
+            {
+                Bitmap bitmap = getBitmapFromYuvBytes(data, mWidth, mHeight);
+                mProcessedBitmaps.add(bitmap);
+                bitmap = getCorrectlyOrientedBitmap(data, mWidth, mHeight);
+                saveBitmap(bitmap, generateDestinationPath());
+                mProcessedBitmaps.add(bitmap);
+            }
+            Bitmap best = smartChoose(mProcessedBitmaps);
+            String filePath = generateDestinationPath();
+            boolean savedSuccessfully = saveBitmap(best, filePath);
+            Log.d(TAG, (savedSuccessfully? "Saved best bitmap to: " + filePath: " Failed to save the best bitmap"));
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            Log.d(TAG, "smartChooseTask done");
+        }
+    }
+
 }

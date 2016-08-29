@@ -1,6 +1,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
+        android:key="smartChoose"
+        android:title="Smart Choose"
+        android:summary="Automatically take multiple photos and choose the best."
+        android:defaultValue="true" />
+
+    <SwitchPreference
         android:key="showOverlay"
         android:title="Show Overlay"
         android:summary="Oval faces and show their smile numbers."
