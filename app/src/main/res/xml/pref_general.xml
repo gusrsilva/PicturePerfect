@@ -1,50 +1,48 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        android:key="smartChoose"
-        android:title="Smart Choose"
-        android:summary="Automatically take multiple photos and choose the best."
+        android:key="@string/pref_key_smart_choose"
+        android:title="@string/pref_title_smart_choose"
+        android:summary="@string/pref_summary_smart_choose"
         android:defaultValue="true" />
 
     <SwitchPreference
-        android:key="showOverlay"
-        android:title="Show Overlay"
-        android:summary="Oval faces and show their smile numbers."
+        android:key="@string/pref_key_show_overlay"
+        android:title="@string/pref_title_show_overlay"
+        android:summary="@string/pref_summary_show_overlay"
         android:defaultValue="true" />
 
     <SwitchPreference
-        android:key="blinkProof"
-        android:title="Blink Proofing"
-        android:summary="Quickly retake a picture if someone happens to blink."
+        android:key="@string/pref_key_blink_proof"
+        android:title="@string/pref_title_blink_proof"
+        android:summary="@string/pref_summary_blink_proof"
         android:defaultValue="true" />
 
     <com.pictureperfect.SeekBarPreference
-        android:key="minFaces"
-        android:title="Number of Faces"
-        android:summary="Wait for the the phone to detect at least this many faces before taking a picture."
-        android:dialogMessage="How many heads do you have"
-        android:text="heads"
+        android:key="@string/pref_key_min_faces"
+        android:title="@string/pref_title_min_faces"
+        android:summary="@string/pref_summary_min_faces"
+        android:dialogMessage="@string/pref_message_min_faces"
+        android:text="@string/pref_text_min_faces"
         android:defaultValue="1"
         android:max="7"
         />
 
     <com.pictureperfect.SeekBarPreference
-        android:key="smileThreshold"
-        android:title="Smile Enthusiasm"
-        android:summary="How big are your smiles? Set the minimum threshold for taking a picture."
-        android:dialogMessage="On a scale of Kanye to the Joker..."
+        android:key="@string/pref_key_smile_threshold"
+        android:title="@string/pref_title_smile_threshold"
+        android:summary="@string/pref_summary_smile_threshold"
+        android:dialogMessage="@string/pref_message_smile_threshold"
         android:defaultValue="80"
-        android:text=""
         android:max="100"
         />
 
     <com.pictureperfect.SeekBarPreference
-        android:key="blinkThreshold"
-        android:title="Blink Threshold"
-        android:summary="Threshold for blink proofing."
-        android:dialogMessage="On a scale of Sauron's Eye to newborn puppies"
+        android:key="@string/pref_key_blink_threshold"
+        android:title="@string/pref_title_blink_threshold"
+        android:summary="@string/pref_summary_blink_threshold"
+        android:dialogMessage="@string/pref_message_blink_threshold"
         android:defaultValue="50"
-        android:text=""
         android:max="100"
         />
 

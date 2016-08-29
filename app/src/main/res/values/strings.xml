@@ -5,74 +5,35 @@
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission.  The application will now exit.</string>
     <string name="low_storage_error">Face detector dependencies cannot be downloaded due to low device storage</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="action_settings">Settings</string>
 
-    <!-- Strings related to Settings -->
+    <!-- Preference Strings -->
+    <string name="pref_key_smart_choose">smartChoose</string>
+    <string name="pref_title_smart_choose">Smart Choose</string>
+    <string name="pref_summary_smart_choose">Automatically take multiple photos and choose the best.</string>
 
-    <!-- Example General settings -->
-    <string name="pref_header_general">General</string>
+    <string name="pref_key_show_overlay">showOverlay</string>
+    <string name="pref_title_show_overlay">Show Overlay</string>
+    <string name="pref_summary_show_overlay">Oval faces and show their smile numbers.</string>
 
-    <string name="pref_title_social_recommendations">Enable social recommendations</string>
-    <string name="pref_description_social_recommendations">Recommendations for people to contact
-        based on your message history
-    </string>
+    <string name="pref_key_blink_proof">blinkProof</string>
+    <string name="pref_title_blink_proof">Blink Proofing (Experimental)</string>
+    <string name="pref_summary_blink_proof">Quickly retake a picture if someone happens to blink.</string>
 
-    <string name="pref_title_display_name">Display name</string>
-    <string name="pref_default_display_name">John Smith</string>
+    <string name="pref_key_min_faces">minFaces</string>
+    <string name="pref_title_min_faces">Number of Faces</string>
+    <string name="pref_summary_min_faces">Wait for the phone to detect at least this many faces before taking a picture.</string>
+    <string name="pref_message_min_faces">How many heads do you have</string>
+    <string name="pref_text_min_faces">heads</string>
 
-    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
-    <string-array name="pref_example_list_titles">
-        <item>1 Face</item>
-        <item>2 Faces</item>
-        <item>3 Faces</item>
-        <item>4 Faces</item>
-        <item>5 Faces</item>
-        <item>6 Faces</item>
-        <item>7 Faces</item>
-    </string-array>
-    <string-array name="pref_example_list_values">
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-        <item>6</item>
-        <item>7</item>
-    </string-array>
+    <string name="pref_key_smile_threshold">smileThreshold</string>
+    <string name="pref_title_smile_threshold">Smile Enthusiasm</string>
+    <string name="pref_summary_smile_threshold">How big are your smiles? Set the minimum threshold for taking a picture.</string>
+    <string name="pref_message_smile_threshold">On a scale of Kanye to the Joker...</string>
+    <string name="pref_text_smile_threshold"> </string>
 
-    <!-- Example settings for Data & Sync -->
-    <string name="pref_header_data_sync">Data &amp; sync</string>
-
-    <string name="pref_title_sync_frequency">Sync frequency</string>
-    <string-array name="pref_sync_frequency_titles">
-        <item>15 minutes</item>
-        <item>30 minutes</item>
-        <item>1 hour</item>
-        <item>3 hours</item>
-        <item>6 hours</item>
-        <item>Never</item>
-    </string-array>
-    <string-array name="pref_sync_frequency_values">
-        <item>15</item>
-        <item>30</item>
-        <item>60</item>
-        <item>180</item>
-        <item>360</item>
-        <item>-1</item>
-    </string-array>
-
-    <string name="pref_title_system_sync_settings">System sync settings</string>
-
-    <!-- Example settings for Notifications -->
-    <string name="pref_header_notifications">Notifications</string>
-
-    <string name="pref_title_new_message_notifications">New message notifications</string>
-
-    <string name="pref_title_ringtone">Ringtone</string>
-    <string name="pref_ringtone_silent">Silent</string>
-
-    <string name="pref_title_vibrate">Vibrate</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="pref_key_blink_threshold">blinkThreshold</string>
+    <string name="pref_title_blink_threshold">Blink Threshold</string>
+    <string name="pref_summary_blink_threshold">Threshold for blink proofing.</string>
+    <string name="pref_message_blink_threshold">On a scale of Sauron\'s Eye to newborn puppies.</string>
+    <string name="pref_text_blink_threshold"> </string>
 </resources>
